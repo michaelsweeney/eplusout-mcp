@@ -155,16 +155,20 @@ class ModelMap(BaseModel):
             city: str | None = None,
             label: str | None = None,
     ):
+
         model_filt = [x for x in self.models]
 
         if len(model_filt) == 0:
             return []
         else:
-            mf = [x for x in model_filt if x.codename == codename]
-            mf = [x for x in model_filt if x.prototype == prototype]
-            mf = [x for x in model_filt if x.codeyear == codeyear]
-            mf = [x for x in model_filt if x.city == city]
-            mf = [x for x in model_filt if x.label == label]
+            mf = [x for x in model_filt]
+            mf = [x for x in mf if x.codename == codename]
+
+            mf = [x for x in mf if x.prototype == prototype]
+            mf = [x for x in mf if x.codeyear == codeyear]
+            mf = [x for x in mf if x.city == city]
+            mf = [x for x in mf if x.label == label]
+
             return mf
 
     def _add_model(self, obj: ModelFileData):
@@ -227,7 +231,7 @@ def get_files_by_type(directory, ext):
     return files
 
 
-def get_file_info(fpath):
+def get_file_info(fpath) -> dict:
     """
     Parse a file name to extract model metadata such as codename, prototype, codeyear, city, label, and extension.
 
@@ -275,11 +279,11 @@ def get_file_info(fpath):
 
     ext = '.'.join(right.split(".")[1:])
 
-
     codename = left[0]
     prototype = left[1]
     codeyear = left[2]
     city = left[3]
+
 
     return {
         'codename': codename,
@@ -329,11 +333,10 @@ def catalog_path(path):
     sql_files = get_files_by_type(path, '.sql')
     epjson_files = get_files_by_type(path, '.epJSON')
 
+
     html_data = [get_file_info(x) for x in html_files]
     sql_data = [get_file_info(x) for x in sql_files]
     epjson_data = [get_file_info(x) for x in epjson_files]
-
-
 
     return {'html_data': html_data, 'sql_data': sql_data, 'epjson_data': epjson_data}
 
@@ -390,8 +393,10 @@ def get_model_map(listdict):
             file_path = h['file_path']
             filepath_abs = os.path.abspath(h['file_path'])
 
+
             # TODO should ensure this is unique.
             model_id = f'{codename}|{prototype}|{codeyear}|{city}|{label}'
+
             # check if exists
             model_search = catalog.search_models(
                 codename=codename,
@@ -400,6 +405,8 @@ def get_model_map(listdict):
                 city=city,
                 label=label
             )
+
+
             # if no match
             if len(model_search) == 0:
                 model = ModelFileData(
@@ -502,7 +509,6 @@ def read_model_map_from_cache(pickle_file: str) -> ModelMap:
 
 
 
-
 def initialize_model_map_from_directory(directory: str) -> ModelMap:
     """
     Scan a directory for model files, build a ModelMap, and cache it to disk.
@@ -529,6 +535,7 @@ def initialize_model_map_from_directory(directory: str) -> ModelMap:
 
     catalog_info = catalog_path(directory)
     model_map = get_model_map(catalog_info)
+
 
     model_map.write_to_cache()
 
@@ -558,7 +565,7 @@ def read_or_initialize_model_map(directory: str, pickle_file: str = CACHE_PICKLE
         model_map = read_model_map_from_cache(pickle_file)
 
     else:
-        model_map = initialize_model_map_from_directory(pickle_file, directory)
+        model_map = initialize_model_map_from_directory(directory)
         model_map.write_to_cache()
 
     return model_map

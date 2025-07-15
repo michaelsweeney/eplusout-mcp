@@ -16,4 +16,4 @@ BASE_DIRECTORY = Path(__file__).parent.parent.absolute()
 CACHE_DIRECTORY = os.path.join(BASE_DIRECTORY, 'mcp_cache')
 CACHE_PICKLE = os.path.join(CACHE_DIRECTORY, 'modelmap.pickle')
 
-EPLUS_RUNS_DIRECTORY = os.path.join(BASE_DIRECTORY, 'eplus_files')
+EPLUS_RUNS_DIRECTORY = Path(os.path.join(BASE_DIRECTORY, 'eplus_files')).absolute()
