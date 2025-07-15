@@ -1,0 +1,23 @@
+[project]
+name = "mcp-eplus-outputs"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "anyio>=4.9.0",
+    "bs4>=0.0.2",
+    "dotenv>=0.9.9",
+    "fastmcp>=2.10.4",
+    "ipykernel>=6.29.5",
+    "lxml>=6.0.0",
+    "matplotlib>=3.10.3",
+    "mcp[cli]>=1.10.1",
+    "nbformat>=5.10.4",
+    "numpy>=2.3.1",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.1",
+    "plotly>=6.2.0",
+    "pyarrow>=20.0.0",
+    "requests>=2.32.4",
+]
