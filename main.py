@@ -1,6 +1,7 @@
-def main():
-    print("Hello from mcp-eplus-outputs!")
+
+from src.server import mcp
 
 
 if __name__ == "__main__":
-    main()
+    # Run with stdio transport for MCP
+    mcp.run(transport="stdio")

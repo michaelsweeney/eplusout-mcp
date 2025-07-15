@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+protoss/
+mcp_cache/
+# Virtual environments
+.venv
+parquet/
+
+src/cache
+mcp_output
+eplus_files
