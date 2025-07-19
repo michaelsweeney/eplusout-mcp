@@ -173,7 +173,6 @@ class SqlTables(BaseModel):
         valdf = df[['RowId', 'ColumnId', 'Value']].pivot(columns='ColumnId', index='RowId', values='Value')
         valdf.columns = pd.MultiIndex.from_tuples([(coldict[col], colunitdict[col]) for col in valdf.columns])
 
-
         valdf.insert(0, 'FieldName', [rowdict[row] for row in valdf.index])
         valdf.insert(0, 'TableName', table_name)
         valdf.insert(0, 'ReportForString', report_for)

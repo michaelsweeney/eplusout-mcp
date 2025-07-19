@@ -47,7 +47,6 @@ def get_html_report_name_data(lines: str) -> List[Dict]:
 
     results = []
 
-
     # Process each line to find comments
     for line_num, line in enumerate(lines, 1):
         # Find all HTML comments in the line
@@ -64,7 +63,6 @@ def get_html_report_name_data(lines: str) -> List[Dict]:
 
                 # Split by underscores
                 parts = fullname_content.split('_') if fullname_content else []
-
 
                 if len(parts) != 3:
                     report_name = fullname_content.split("_")[0]

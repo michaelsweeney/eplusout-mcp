@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 from typing import List, Literal
 import pickle
+import pandas as pd
 import logging
 import os
 import glob as gb
@@ -28,16 +29,72 @@ class HtmlFileData(BaseModel):
     data: dict | None = None
     report_names: list | None = None
 
-    def get_report_names(self):
-        if self.report_names is None:
-            self.report_names = get_html_report_name_data(self.file_path)
-        return self.report_names
+    def get_report_names(self) -> list[tuple]:
+
+        """
+        return list of tuples, "report_for", "report_name", "table_name"
+        """
+        data = self.get_data()
+
+        return [
+            (
+                x['report_for'], x['report_name'], x['table_name']
+            ) for x in data]
 
 
     def get_data(self) -> list:
         if self.data is None:
+            print(f'storing html data: {self.file_path}')
             self.data = get_all_table_data(self.file_path)
         return self.data
+
+
+    def get_table_by_tuple(self, tabletuple, asjson=True):
+        """
+        tabletuple is in order "report_for", "report_name", "table_name" 
+        """
+        data = self.get_data()
+
+        report_for, report_name, table_name = tabletuple
+
+        datafilter = [
+            x for x in data if x['report_for'] == report_for and x['report_name'] == report_name and x['table_name'] == table_name
+        ]
+
+        if len(datafilter) == 0:
+            print(f'no tables found: {tabletuple}')
+        elif len(datafilter) > 1:
+            print(f'multiple tables found: {tabletuple}')
+
+        else:
+
+            tabledata = datafilter[0]['table_data']
+            if not asjson:
+                return tabledata
+            tdd = pd.DataFrame(tabledata)
+
+            tdd.columns = tdd.iloc[0]
+            tdd = tdd.iloc[1:, :]
+
+            # handle
+            identifier = tdd.columns.to_series().groupby(level=0).transform('cumcount')
+            # rename columns with the new identifiers
+
+            identifier = identifier.astype(str).replace("0", "")
+
+
+            tdd.columns = tdd.columns.astype('string') + "_" + identifier.astype('string')
+
+            def trim_last(x):
+                if x[-1] == '_':
+                    return x[:-1]
+            tdd.columns = [trim_last(x) for x in tdd.columns]
+
+            return tdd.to_dict(orient='records')
+
+        return []
+
+
 
 
 class SqlFileData(BaseModel):
@@ -562,9 +619,11 @@ def read_or_initialize_model_map(directory: str, pickle_file: str = CACHE_PICKLE
     """
 
     if os.path.exists(pickle_file):
+        print('reading model map')
         model_map = read_model_map_from_cache(pickle_file)
 
     else:
+        print('initializing model map')
         model_map = initialize_model_map_from_directory(directory)
         model_map.write_to_cache()
 
