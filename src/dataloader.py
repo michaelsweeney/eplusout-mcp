@@ -10,8 +10,6 @@ import numpy as np
 import time
 
 
-
-
 def _format_result(result) -> str:
     """
     Format query result for display in MCP server responses.

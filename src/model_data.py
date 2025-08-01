@@ -165,9 +165,20 @@ class ModelFileData(BaseModel):
     city: str
     label: str
     model_id: str
+
     epjson_data: EpJsonFileData | None = None
     sql_data: SqlFileData | None = None
     html_data: HtmlFileData | None = None
+
+
+    def get_basic_attributes(self):
+        return {
+            'codename': self.codename,
+            'prototype': self.prototype,
+            'city': self.city,
+            'label': self.label,
+            'model_id': self.model_id
+        }
 
 
 class ModelMap(BaseModel):

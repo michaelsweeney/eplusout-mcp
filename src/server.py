@@ -1,24 +1,16 @@
+from pathlib import Path
+import time
+import pandas as pd
+import glob as gb
+
+from mcp.server.fastmcp import FastMCP
 from src.monitor import log_mcp_call
-import plotly.express as px
-from src import CACHE_PICKLE, CACHE_DIRECTORY, EPLUS_RUNS_DIRECTORY
-from src.model_data import get_model_map, catalog_path, read_model_map_from_cache, get_file_info, initialize_model_map_from_directory, read_or_initialize_model_map, read_or_initialize_model_map
+from src import CACHE_PICKLE, EPLUS_RUNS_DIRECTORY
+from src.model_data import initialize_model_map_from_directory, read_or_initialize_model_map
 from src.dataloader import execute_pandas_query, execute_multiline_pandas_query
 
-from pathlib import Path
-import pickle
-import json
-import time
-from io import StringIO
-import pandas as pd
-from bs4 import BeautifulSoup
-from typing import Literal
-from typing import List
-from pydantic import BaseModel
-import os
-import glob as gb
-from mcp.server.fastmcp import FastMCP
-mcp = FastMCP("eplus_outputs")
 
+mcp = FastMCP("eplus_outputs")
 
 
 @mcp.tool()
@@ -35,13 +27,8 @@ def initialize_model_map(directory: str = 'eplus_files') -> str:
     Returns:
         Status message confirming successful initialization.
     """
-    start_time = time.time()
-    function_name = "setup_model_map"
-
-
     initialize_model_map_from_directory(directory)
     result = f"Model map initialized successfully for directory: {directory}"
-
     log_mcp_call('setup_model_map', result, kwargs={'directory': directory})
 
     return result
@@ -70,7 +57,8 @@ def get_available_models(directory: str = 'eplus_files') -> dict:
     """
 
     model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
-    model_summary_table = pd.DataFrame([x.model_dump(mode='json') for x in model_map.models])
+
+    model_summary_table = pd.DataFrame([x.get_basic_attributes() for x in model_map.models])
 
 
     result = model_summary_table.to_dict(orient='records')
@@ -79,61 +67,6 @@ def get_available_models(directory: str = 'eplus_files') -> dict:
     log_mcp_call('get_available_models', result, kwargs={'directory': directory})
 
     return result
-
-
-# REMOVED -- WOULD NEED TO ALLOW IT TO QUERY INDIVIDUALLY
-# @mcp.tool()
-# def read_epjson_schema() -> str:
-#     """
-#     Read the EnergyPlus epJSON schema definition.
-
-#     Returns the complete epJSON schema that defines all available EnergyPlus object types,
-#     their properties, and validation rules. Essential for understanding epJSON structure.
-
-#     Returns:
-#         String representation of the epJSON schema containing all object definitions
-#         and their required/optional properties.
-#     """
-
-#     with open('schema/Energy+.schema.epJSON', 'r') as f:
-#         jsondict = json.load(f)
-
-#     result = result
-#     log_mcp_call('read_epjson_schema', result, kwargs={})
-
-#     return result
-
-
-
-
-
-
-
-# REMOVED -- WAS GENERATING LARGE TOKENS FROM HUGE STRING SIZE
-# @mcp.tool()
-# def get_html_table_names(id: str) -> str:
-#     """
-#     Get available HTML table names for a specific EnergyPlus model.
-
-#     Args:
-#         id: The model_id of the EnergyPlus model (obtain from get_available_models).
-
-#     Returns:
-#         List of available table metadata including table names, report names,
-#         and line numbers for precise table identification.
-#     """
-
-#     model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
-#     model = model_map.get_model_by_id(id)
-
-#     # Get the full report names data
-#     report_data = model.html_data.get_report_names()
-#     result = str(report_data)
-
-#     log_mcp_call('get_html_table_names', result, kwargs={'id': id})
-
-#     return result
-
 
 
 @mcp.tool()
@@ -155,12 +88,16 @@ def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
     table = model.html_data.get_table_by_tuple(query_tuple, asjson=True)
 
     result = table
-    log_mcp_call('get_html_table_by_tuple', result, kwargs={'id': id, 'query_tuple': query_tuple})
-
+    log_mcp_call(
+        'get_html_table_by_tuple',
+        result,
+        kwargs={
+            'id': id,
+            'query_tuple': query_tuple
+        }
+    )
 
     return table
-
-
 
 
 @mcp.tool()
@@ -188,8 +125,6 @@ def get_sql_available_hourlies(id: str) -> list | dict:
 
     return result
 
-
-"""generated for json queries"""
 
 
 @mcp.tool()
@@ -346,7 +281,6 @@ def get_object_properties(
         "property_count": len(obj_data),
         "model_id": model_id
     }
-
 
     log_mcp_call(
         'get_object_properties',
