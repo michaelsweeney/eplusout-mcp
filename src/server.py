@@ -3,18 +3,22 @@ import time
 import pandas as pd
 import glob as gb
 
+
+from typing import Any
 from mcp.server.fastmcp import FastMCP
 from src.monitor import log_mcp_call
 from src import CACHE_PICKLE, EPLUS_RUNS_DIRECTORY
 from src.model_data import initialize_model_map_from_directory, read_or_initialize_model_map
 from src.dataloader import execute_pandas_query, execute_multiline_pandas_query
 
-
 mcp = FastMCP("eplus_outputs")
 
+DEFAULT_DIRECTORY = 'eplus_files/prescriptive_variability_sample'
+ERROR_CHECK_DIRECTORY = 'eplus_files/forced_error/error'
 
 @mcp.tool()
-def initialize_model_map(directory: str = 'eplus_files') -> str:
+def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
+
     """
     Initialize or refresh the model map cache for EnergyPlus models.
 
@@ -22,11 +26,13 @@ def initialize_model_map(directory: str = 'eplus_files') -> str:
     a cached model map for efficient access. Call this first before accessing model data.
 
     Args:
-        directory: Directory containing EnergyPlus model files. Defaults to 'eplus_files'.
+        directory: Directory containing EnergyPlus model files. Defaults to 'DEFUALT_DIRECTORY'.
 
     Returns:
         Status message confirming successful initialization.
     """
+
+    # TODO add in default vs listed prepend pattern
     initialize_model_map_from_directory(directory)
     result = f"Model map initialized successfully for directory: {directory}"
     log_mcp_call('setup_model_map', result, kwargs={'directory': directory})
@@ -35,7 +41,7 @@ def initialize_model_map(directory: str = 'eplus_files') -> str:
 
 
 @mcp.tool()
-def get_available_models(directory: str = 'eplus_files') -> dict:
+def get_available_models(directory: str = DEFAULT_DIRECTORY) -> dict:
     """
     Retrieve all available EnergyPlus models and their metadata.
 
@@ -62,7 +68,6 @@ def get_available_models(directory: str = 'eplus_files') -> dict:
 
 
     result = model_summary_table.to_dict(orient='records')
-
 
     log_mcp_call('get_available_models', result, kwargs={'directory': directory})
 
@@ -98,6 +103,59 @@ def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
     )
 
     return table
+
+
+@mcp.tool()
+def get_rdd_file(id: str) -> list[str]:
+    """
+    Retrieve a specific RDD file from an EnergyPlus model using ID.
+    Useful in debugging.
+
+    Args:
+        id: The model_id of the EnergyPlus model (obtain from get_available_models).
+
+    Returns:
+        Plain text output of RDD file, which shows available output reports.
+    """
+
+    model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
+    model = model_map.get_model_by_id(id)
+    err_file = model.get_associated_files_by_type('rdd')
+    return err_file
+
+
+@mcp.tool()
+def get_error_file(id: str) -> list[str]:
+    """
+    Retrieve a specific Error file from an EnergyPlus model using ID.
+    Useful in debugging.
+
+    Args:
+        id: The model_id of the EnergyPlus model (obtain from get_available_models).
+
+    Returns:
+        Plain text output of EPlus error file
+    """
+
+    model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
+    model = model_map.get_model_by_id(id)
+    err_file = model.get_associated_files_by_type('err')
+    return err_file
+
+
+    # result = table
+    # log_mcp_call(
+    #     'get_html_table_by_tuple',
+    #     result,
+    #     kwargs={
+    #         'id': id,
+    #         'query_tuple': query_tuple
+    #     }
+    # )
+
+    # return table
+
+
 
 
 @mcp.tool()
@@ -403,7 +461,7 @@ def search_related_objects(model_id: str, search_pattern: str) -> dict:
 
 
 @mcp.tool()
-def get_timeseries_report_by_rddid(model_id, rddid: int) -> list[dict]:
+def get_timeseries_report_by_rddid_list(model_id, rddid: list[int]) -> Any:
     """
     Retrieve hourly timeseries data for a specific variable from an EnergyPlus model.
 
@@ -412,7 +470,7 @@ def get_timeseries_report_by_rddid(model_id, rddid: int) -> list[dict]:
 
     Args:
         model_id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        rddid: The RDD ID for the desired variable (obtain from get_sql_available_hourlies).
+        rddid: A list of RDD IDs (integers) for the desired variables (obtain from get_sql_available_hourlies).
 
     Returns:
         List of timestamped records, each containing:
@@ -428,18 +486,37 @@ def get_timeseries_report_by_rddid(model_id, rddid: int) -> list[dict]:
     """
     model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
     model = model_map.get_model_by_id(model_id)
-    result = model.sql_data.get_timeseries().getseries_by_record_id(rddid)
 
+
+    resultlist = []
+    for rdd in rddid:
+        rdf = model.sql_data.get_timeseries().getseries_by_record_id(rdd)
+        resultlist.append(rdf)
+
+    dflist = []
+    for r in resultlist:
+        tr = r[0]
+
+        r_lbl = f'{tr['KeyValue']}-{tr['Name']}-{tr['TimestepType']}-{tr['Units']}'
+
+        dfr = pd.DataFrame(r)
+        dfr = dfr.set_index('dt')
+
+        dfr.name = r_lbl
+        dfr = dfr.rename({"Value": r_lbl}, axis=1)
+
+        dflist.append(dfr[r_lbl])
+
+    dff = pd.concat(dflist, axis=1)
     log_mcp_call(
         'get_timeseries_report_by_rddid',
-        result,
+        dff,
         kwargs={
             'model_id': model_id,
             'rddid': rddid,
         }
     )
-
-    return result
+    return dff
 
 
 
@@ -456,15 +533,11 @@ def get_usage_instructions() -> str:
     """
     try:
         with open('src/CLAUDE.md', 'r') as f:
-
             result = f.read()
-
-
             log_mcp_call(
                 'get_usage_instructions',
                 result,
                 kwargs={
-
                 }
             )
             return result
@@ -565,7 +638,6 @@ def search_html_tables_by_keyword(id: str, keywords: list[str], case_sensitive: 
             if isinstance(table_info, tuple):
                 table_name, report_name, report_for = table_info
 
-
                 # Check various fields for keyword matches
                 fields_to_search = [
                     table_name, report_name, report_for
@@ -625,12 +697,14 @@ def execute_multiline_query(file_hash: str, query: str) -> str:
 
     Returns:
         str: Formatted result or status message.
+
+    Notes: Does not accept import statements or print statements.
     """
     return execute_multiline_pandas_query(file_hash, query)
 
 
 @mcp.tool()
-def execute_pandas_on_timeseries(model_id: str, rddid: int, query: str) -> str:
+def execute_pandas_on_timeseries(model_id: str, rddid: list[int], query: str) -> str:
     """
     Execute pandas operations on timeseries data from an EnergyPlus model.
 
@@ -639,7 +713,7 @@ def execute_pandas_on_timeseries(model_id: str, rddid: int, query: str) -> str:
 
     Args:
         model_id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        rddid: The RDD ID for the desired variable (obtain from get_sql_available_hourlies).
+        rddid: A list of RDD IDs for the desired variable (obtain from get_sql_available_hourlies).
         query: Pandas query to execute (e.g., "df.describe()", "df['Value'].mean()")
 
     Returns:
@@ -659,10 +733,27 @@ def execute_pandas_on_timeseries(model_id: str, rddid: int, query: str) -> str:
     # Get the timeseries data
     model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
     model = model_map.get_model_by_id(model_id)
-    timeseries_data = model.sql_data.get_timeseries().getseries_by_record_id(rddid)
 
-    # Convert to DataFrame
-    df = pd.DataFrame(timeseries_data)
+
+
+    resultlist = []
+    for rdd in rddid:
+        rdf = model.sql_data.get_timeseries().getseries_by_record_id(rdd)
+        resultlist.append(rdf)
+
+    dflist = []
+    for r in resultlist:
+        tr = r[0]
+        r_lbl = f'{tr['KeyValue']}-{tr['Name']}-{tr['TimestepType']}-{tr['Units']}'
+        dfr = pd.DataFrame(r)
+        dfr = dfr.set_index('dt')
+        dfr.name = r_lbl
+        dfr = dfr.rename({"Value": r_lbl}, axis=1)
+
+        dflist.append(dfr[r_lbl])
+
+    df = pd.concat(dflist, axis=1)
+
 
     # Convert datetime if present
     if 'dt' in df.columns:
@@ -685,7 +776,7 @@ def execute_pandas_on_timeseries(model_id: str, rddid: int, query: str) -> str:
 
 
 @mcp.tool()
-def execute_multiline_pandas_on_timeseries(model_id: str, rddid: int, code: str) -> str:
+def execute_multiline_pandas_on_timeseries(model_id: str, rddid: list[int], code: str) -> str:
     """
     Execute multi-line pandas code on timeseries data from an EnergyPlus model.
 
@@ -694,7 +785,7 @@ def execute_multiline_pandas_on_timeseries(model_id: str, rddid: int, code: str)
 
     Args:
         model_id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        rddid: The RDD ID for the desired variable (obtain from get_sql_available_hourlies).
+        rddid: List of RDD IDs for the desired variables (obtain from get_sql_available_hourlies).
         code: Multi-line Python code to execute
 
     Returns:
@@ -714,14 +805,25 @@ def execute_multiline_pandas_on_timeseries(model_id: str, rddid: int, code: str)
     # Get the timeseries data
     model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
     model = model_map.get_model_by_id(model_id)
-    timeseries_data = model.sql_data.get_timeseries().getseries_by_record_id(rddid)
 
-    # Convert to DataFrame
-    df = pd.DataFrame(timeseries_data)
+    resultlist = []
+    for rdd in rddid:
+        rdf = model.sql_data.get_timeseries().getseries_by_record_id(rdd)
+        resultlist.append(rdf)
 
-    # Convert datetime if present
-    if 'dt' in df.columns:
-        df['dt'] = pd.to_datetime(df['dt'])
+    dflist = []
+    for r in resultlist:
+        tr = r[0]
+        r_lbl = f'{tr['KeyValue']}-{tr['Name']}-{tr['TimestepType']}-{tr['Units']}'
+        dfr = pd.DataFrame(r)
+        dfr = dfr.set_index('dt')
+        dfr.name = r_lbl
+        dfr = dfr.rename({"Value": r_lbl}, axis=1)
+
+        dflist.append(dfr[r_lbl])
+
+    df = pd.concat(dflist, axis=1)
+
 
     # Execute the code
     result = execute_multiline_pandas_query(df, code)

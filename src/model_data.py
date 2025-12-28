@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 from typing import List, Literal
 import pickle
+from pathlib import Path
 import pandas as pd
 import logging
 import os
@@ -81,7 +82,6 @@ class HtmlFileData(BaseModel):
             # rename columns with the new identifiers
 
             identifier = identifier.astype(str).replace("0", "")
-
 
             tdd.columns = tdd.columns.astype('string') + "_" + identifier.astype('string')
 
@@ -180,6 +180,36 @@ class ModelFileData(BaseModel):
             'model_id': self.model_id
         }
 
+    def get_associated_files_by_type(self, ext: str, file_type: Literal['plain_text', 'csv'] = 'plain_text'):
+
+        # assumes there is one and only one epjson_data file. also assumes that it is a plain text object and returns lines.
+        # TODO this really doesnt belong here.
+
+        if self.epjson_data:
+            epjson_path = Path(self.epjson_data.file_path)
+            parent = epjson_path.parent
+            stem = epjson_path.stem
+            files_found = [x for x in parent.glob(f'{stem}*{ext}')]
+
+            if len(files_found) >= 1:
+                ftr = files_found[0]
+                if file_type == 'plain_text':
+                    with open(ftr, 'r') as f:
+                        return f.readlines()
+                elif file_type == 'csv':
+                    try:
+                        df = pd.read_csv(ftr, encoding='utf-8')
+                    except pd.errors.ParserError as e:
+                        with open(ftr, 'r') as f:
+                            print(f"csv parser error, returning as text: {ftr}")
+                            return f.readlines()
+                    return df
+                else:
+                    return f'error -- no implementation for type {file_type}'
+            else:
+                return f"error - no file found for type {ext}"
+        pass
+
 
 class ModelMap(BaseModel):
     """
@@ -195,7 +225,6 @@ class ModelMap(BaseModel):
 
     models: List[ModelFileData] = []
 
-
     def get_all_model_ids(self):
         return [
             x.model_id for x in self.models
@@ -209,7 +238,6 @@ class ModelMap(BaseModel):
             return dff[0]
         elif len(dff) > 1:
             # logger.warning(f'multiple ids found; returning first: {id}')
-
             return dff[0]
         else:
             pass
@@ -346,6 +374,7 @@ def get_file_info(fpath) -> dict:
     model_lbl = right.split(".")[0]
 
     ext = '.'.join(right.split(".")[1:])
+
 
     codename = left[0]
     prototype = left[1]

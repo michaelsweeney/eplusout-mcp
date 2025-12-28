@@ -364,7 +364,6 @@ class SqlTimeseries(BaseModel):
         else:
             print(f'none found for {labelquery}')
 
-        print(labelquery)
 
         ReportDataDictionaryIndex, IsMeter, Type, IndexGroup, TimestepType, KeyValue, Name, ReportingFrequency, ScheduleName, Units = labelquery
 

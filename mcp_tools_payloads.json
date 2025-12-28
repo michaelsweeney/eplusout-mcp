@@ -1,0 +1,38 @@
+[
+  {
+    "tool": "initialize_model_map",
+    "input": "DEFAULT_DIRECTORY",
+    "response": "Model map initialized successfully for directory: eplus_files/prescriptive_variability_sample"
+  },
+  {
+    "tool": "get_available_models",
+    "input": "DEFAULT_DIRECTORY",
+    "response": [
+      {
+        "codename": "ASHRAE901",
+        "prototype": "HotelLarge",
+        "city": "Buffalo",
+        "label": "gshp",
+        "model_id": "ASHRAE901|HotelLarge|STD2025|Buffalo|gshp"
+      },
+      {
+        "codename": "ASHRAE901",
+        "prototype": "HotelLarge",
+        "city": "Buffalo",
+        "label": "pkgdx_gas",
+        "model_id": "ASHRAE901|HotelLarge|STD2025|Buffalo|pkgdx_gas"
+      }
+    ]
+  },
+  {
+    "tool": "search_html_tables_by_keyword",
+    "input": {
+      "id": "ASHRAE901|HotelLarge|STD2025|Buffalo|gshp",
+      "keywords": ["cooling", "peak", "load"],
+      "case_sensitive": false
+    },
+    "output": [{
+  "matching_tables": ""
+  }]
+    ]
+    }
