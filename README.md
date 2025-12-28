@@ -223,3 +223,4 @@ get_usage_instructions()
 ```
 
 This returns the complete CLAUDE.md documentation file with comprehensive examples and best practices.
+"# eplusout-mcp" 
