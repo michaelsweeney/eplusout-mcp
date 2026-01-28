@@ -27,6 +27,35 @@ class SqlTables(BaseModel):
     Use this class to list available tables, filter tables, and extract specific tables as DataFrames.
     """
     sql_file: str
+    _string_cache: dict | None = None  # Cache for Strings table lookups
+    _conn: sqlite3.Connection | None = None  # Persistent connection
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def _get_connection(self):
+        """Get or create persistent connection"""
+        if self._conn is None:
+            self._conn = sqlite3.connect(self.sql_file)
+        return self._conn
+
+    def __del__(self):
+        """Close connection on cleanup"""
+        if self._conn is not None:
+            self._conn.close()
+
+    def _get_string_cache(self):
+        """Get or build string lookup cache"""
+        if self._string_cache is None:
+            strings = self._exec_pandas_query("SELECT StringIndex, StringTypeIndex, Value FROM Strings")
+            # Create nested dict: {StringTypeIndex: {Value: StringIndex}}
+            self._string_cache = {}
+            for _, row in strings.iterrows():
+                type_idx = row['StringTypeIndex']
+                if type_idx not in self._string_cache:
+                    self._string_cache[type_idx] = {}
+                self._string_cache[type_idx][row['Value']] = row['StringIndex']
+        return self._string_cache
 
     def _df_cols_to_dict(self, df, keycol, valcol):
         """
@@ -77,9 +106,8 @@ class SqlTables(BaseModel):
         Returns:
             pd.DataFrame: Query result.
         """
-        conn = sqlite3.connect(self.sql_file)
+        conn = self._get_connection()
         df = pd.read_sql((query), conn)
-        conn.close()
         return df
 
     def _df_to_tabledict(self, df):
@@ -149,9 +177,14 @@ class SqlTables(BaseModel):
             table_name = tabledict['TableName']
 
 
-        reportnameidx = int(self._exec_pandas_query(f"SELECT * FROM 'Strings' WHERE StringTypeIndex = 1 and Value = '{report_name}'")['StringIndex'].iloc[0])
-        reportforidx = int(self._exec_pandas_query(f"SELECT * FROM 'Strings' WHERE StringTypeIndex = 2 and Value = '{report_for}'")['StringIndex'].iloc[0])
-        tablenameidx = int(self._exec_pandas_query(f"SELECT * FROM 'Strings' WHERE StringTypeIndex = 3 and Value = '{table_name}'")['StringIndex'].iloc[0])
+        # Use cached string lookups instead of querying
+        string_cache = self._get_string_cache()
+        reportnameidx = string_cache.get(1, {}).get(report_name)
+        reportforidx = string_cache.get(2, {}).get(report_for)
+        tablenameidx = string_cache.get(3, {}).get(table_name)
+
+        if reportnameidx is None or reportforidx is None or tablenameidx is None:
+            raise ValueError(f"Table not found: {report_name}/{report_for}/{table_name}")
 
 
 
@@ -212,6 +245,22 @@ class SqlTimeseries(BaseModel):
     Use this class to list available series, filter by name, and extract time series as DataFrames.
     """
     sql_file: str
+    _time_cache: pd.DataFrame | None = None  # Cache for time index
+    _conn: sqlite3.Connection | None = None  # Persistent connection
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def _get_connection(self):
+        """Get or create persistent connection"""
+        if self._conn is None:
+            self._conn = sqlite3.connect(self.sql_file)
+        return self._conn
+
+    def __del__(self):
+        """Close connection on cleanup"""
+        if self._conn is not None:
+            self._conn.close()
 
     def _exec_query(self, query):
         """
@@ -221,12 +270,10 @@ class SqlTimeseries(BaseModel):
         Returns:
             pd.DataFrame: Query result.
         """
-        conn = sqlite3.connect(self.sql_file)
+        conn = self._get_connection()
         cursor = conn.cursor()
         cursor.execute(query)
         res = cursor.fetchall()
-
-        conn.close()
         return res
 
     def _df_query(self, query):
@@ -237,9 +284,8 @@ class SqlTimeseries(BaseModel):
         Returns:
             pd.DataFrame: Query result.
         """
-        conn = sqlite3.connect(self.sql_file)
+        conn = self._get_connection()
         df = pd.read_sql(query, conn)
-        conn.close()
         return df
 
     def _df_to_tabledict(self, df):
@@ -275,9 +321,14 @@ class SqlTimeseries(BaseModel):
     def _maketime(self):
         """
         Build a DataFrame of time indices and corresponding datetime values for hourly data.
+        Cached after first call for performance.
         Returns:
             pd.DataFrame: DataFrame with time indices and datetime values.
         """
+        # Return cached version if available
+        if self._time_cache is not None:
+            return self._time_cache
+
         timedf = self._df_query("SELECT * FROM Time WHERE Interval = 60")
 
         def zeropad(val):
@@ -294,6 +345,9 @@ class SqlTimeseries(BaseModel):
         timedf['dt'] = timedf['Month'].astype(str) + "-" + timedf['Day'].astype(str) + "-" + timedf['Hour'].astype(str)
         dtformat = "%m-%d-%H"
         timedf['dt'] = pd.to_datetime(timedf['dt'], format=dtformat)
+
+        # Cache the result
+        self._time_cache = timedf
         return timedf
 
 

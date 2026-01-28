@@ -22,17 +22,19 @@ def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
     """
     Initialize or refresh the model map cache for EnergyPlus models.
 
-    Scans a directory for EnergyPlus model files (.epJSON, .sql, .htm) and creates
-    a cached model map for efficient access. Call this first before accessing model data.
+    Scans a directory recursively for EnergyPlus model files (.epJSON, .sql, .htm) and creates
+    a cached model map for efficient access. Files are grouped by directory and filename stem,
+    so 'mydir/model1.sql' and 'mydir/model1.epJSON' will be recognized as part of the same model.
+    Call this first before accessing model data.
 
     Args:
-        directory: Directory containing EnergyPlus model files. Defaults to 'DEFUALT_DIRECTORY'.
+        directory: Directory containing EnergyPlus model files. Defaults to 'DEFAULT_DIRECTORY'.
+                  Subdirectories will be scanned recursively.
 
     Returns:
         Status message confirming successful initialization.
     """
 
-    # TODO add in default vs listed prepend pattern
     initialize_model_map_from_directory(directory)
     result = f"Model map initialized successfully for directory: {directory}"
     log_mcp_call('setup_model_map', result, kwargs={'directory': directory})
@@ -43,7 +45,7 @@ def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
 @mcp.tool()
 def get_available_models(directory: str = DEFAULT_DIRECTORY) -> dict:
     """
-    Retrieve all available EnergyPlus models and their metadata.
+    Retrieve all available EnergyPlus models and their file locations.
 
     Returns detailed information about all discovered EnergyPlus models,
     including their unique identifiers for use with other tools.
@@ -53,21 +55,17 @@ def get_available_models(directory: str = DEFAULT_DIRECTORY) -> dict:
 
     Returns:
         List of dictionaries containing model information:
-        - model_id: Unique identifier for use with other tools
-        - codename: Model standard (e.g., 'ASHRAE901')
-        - prototype: Building type (e.g., 'HotelLarge', 'Warehouse')
-        - codeyear: Code year (e.g., 'STD2025')
-        - city: Location (e.g., 'Buffalo', 'Tampa')
-        - label: HVAC system type (e.g., 'gshp', 'vav_ac_blr')
-        - file paths for epJSON, SQL, and HTML files
+        - model_id: Unique identifier for use with other tools (e.g., 'mydir/eplusout')
+        - directory: Directory path where model files are located
+        - stem: Filename stem (filename without extension)
+        - display_name: User-friendly name for the model
+        - files: Dictionary of available file paths (epjson, sql, html)
     """
 
     model_map = read_or_initialize_model_map(EPLUS_RUNS_DIRECTORY, CACHE_PICKLE)
 
-    model_summary_table = pd.DataFrame([x.get_basic_attributes() for x in model_map.models])
-
-
-    result = model_summary_table.to_dict(orient='records')
+    # Directly return list of attributes instead of converting through DataFrame
+    result = [x.get_basic_attributes() for x in model_map.models]
 
     log_mcp_call('get_available_models', result, kwargs={'directory': directory})
 

@@ -4,6 +4,11 @@ import re
 from typing import List, Dict
 import os
 
+# Pre-compiled regex patterns for better performance
+COMMENT_PATTERN = re.compile(r'<!--\s*(.*?)\s*-->', re.DOTALL)
+TABLE_PATTERN = re.compile(r'<table\b[^>]*>.*?</table>', re.DOTALL | re.IGNORECASE)
+WHITESPACE_PATTERN = re.compile(r'\s+')
+
 
 def read_html_lines(html_file_path: str) -> list[str]:
     """
@@ -49,9 +54,8 @@ def get_html_report_name_data(lines: str) -> List[Dict]:
 
     # Process each line to find comments
     for line_num, line in enumerate(lines, 1):
-        # Find all HTML comments in the line
-        comment_pattern = r'<!--\s*(.*?)\s*-->'
-        comments = re.finditer(comment_pattern, line, re.DOTALL)
+        # Find all HTML comments in the line using pre-compiled pattern
+        comments = COMMENT_PATTERN.finditer(line)
 
         for comment_match in comments:
             comment_content = comment_match.group(1).strip()
@@ -138,7 +142,8 @@ class TableParser(HTMLParser):
             self.in_cell = False
             # Clean up cell content
             cell_content = self.current_cell.strip()
-            cell_content = re.sub(r'\s+', ' ', cell_content)  # Normalize whitespace
+            # Use pre-compiled pattern for whitespace normalization
+            cell_content = WHITESPACE_PATTERN.sub(' ', cell_content)
             self.current_row.append(cell_content)
 
     def handle_data(self, data):
@@ -177,8 +182,8 @@ def find_table_at_line(lines: str, start_line: int) -> Optional[Dict]:
     # Join lines from start_line onwards (convert to 0-based index)
     content_from_line = '\n'.join(lines[start_line - 1:])
 
-    # Find the first table tag
-    table_match = re.search(r'<table\b[^>]*>.*?</table>', content_from_line, re.DOTALL | re.IGNORECASE)
+    # Find the first table tag using pre-compiled pattern
+    table_match = TABLE_PATTERN.search(content_from_line)
 
     if not table_match:
         print(f"No table found starting from line {start_line}")

@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 from typing import List, Literal
 import pickle
+import gzip
 from pathlib import Path
 import pandas as pd
 import logging
@@ -149,35 +150,45 @@ class ModelFileData(BaseModel):
     Represents a single EnergyPlus model and its associated files.
 
     Attributes:
-        codename (str): Model codename (e.g., 'ASHRAE901').
-        prototype (str): Building prototype (e.g., 'HotelLarge').
-        codeyear (str): Code year (e.g., 'STD2025').
-        city (str): City or location.
-        label (str): Model label or variant.
+        model_id (str): Unique identifier for this model (e.g., 'mydir/eplusout').
+        directory (str): Directory path where the model files are located.
+        stem (str): Filename stem (filename without extension).
+        display_name (str): User-friendly name for the model (defaults to stem).
         epjson_data (EpJsonFileData | None): Associated epJSON file data.
         sql_data (SqlFileData | None): Associated SQL file data.
         html_data (HtmlFileData | None): Associated HTML file data.
     """
 
-    codename: str
-    prototype: str
-    codeyear: str
-    city: str
-    label: str
     model_id: str
+    directory: str
+    stem: str
+    display_name: str | None = None
 
     epjson_data: EpJsonFileData | None = None
     sql_data: SqlFileData | None = None
     html_data: HtmlFileData | None = None
 
+    def model_post_init(self, __context):
+        """Set display_name to stem if not provided"""
+        if self.display_name is None:
+            self.display_name = self.stem
 
     def get_basic_attributes(self):
+        """Get basic model attributes for display"""
+        files = {}
+        if self.epjson_data:
+            files['epjson'] = self.epjson_data.file_path
+        if self.sql_data:
+            files['sql'] = self.sql_data.file_path
+        if self.html_data:
+            files['html'] = self.html_data.file_path
+
         return {
-            'codename': self.codename,
-            'prototype': self.prototype,
-            'city': self.city,
-            'label': self.label,
-            'model_id': self.model_id
+            'model_id': self.model_id,
+            'directory': self.directory,
+            'stem': self.stem,
+            'display_name': self.display_name,
+            'files': files
         }
 
     def get_associated_files_by_type(self, ext: str, file_type: Literal['plain_text', 'csv'] = 'plain_text'):
@@ -219,8 +230,8 @@ class ModelMap(BaseModel):
         models (List[ModelFileData]): List of model objects.
 
     Methods:
-        search: Filter models by codename, prototype, codeyear, city, or label.
-        add: Add a new ModelFileData object to the list.
+        search_models: Filter models by pattern matching on model_id or display_name.
+        _add_model: Add a new ModelFileData object to the list.
     """
 
     models: List[ModelFileData] = []
@@ -243,29 +254,30 @@ class ModelMap(BaseModel):
             pass
             # logger.warning(f'no ids found: {id}')
 
-    def search_models(
-            self,
-            codename: str | None = None,
-            prototype: str | None = None,
-            codeyear: str | None = None,
-            city: str | None = None,
-            label: str | None = None,
-    ):
+    def search_models(self, pattern: str | None = None):
+        """
+        Filter models by model_id or display_name pattern.
 
-        model_filt = [x for x in self.models]
+        Args:
+            pattern (str | None): Search pattern to match against model_id or display_name.
+                                 If None, returns all models.
 
-        if len(model_filt) == 0:
-            return []
-        else:
-            mf = [x for x in model_filt]
-            mf = [x for x in mf if x.codename == codename]
+        Returns:
+            list: List of ModelFileData objects matching the pattern.
 
-            mf = [x for x in mf if x.prototype == prototype]
-            mf = [x for x in mf if x.codeyear == codeyear]
-            mf = [x for x in mf if x.city == city]
-            mf = [x for x in mf if x.label == label]
+        Example:
+            >>> model_map.search_models('mydir')
+            [<ModelFileData model_id='mydir/model1'>, <ModelFileData model_id='mydir/model2'>]
+        """
+        if not pattern:
+            return self.models
 
-            return mf
+        pattern_lower = pattern.lower()
+        return [
+            m for m in self.models
+            if pattern_lower in m.model_id.lower() or
+               pattern_lower in (m.display_name or '').lower()
+        ]
 
     def _add_model(self, obj: ModelFileData):
         self.models.append(obj)
@@ -284,7 +296,9 @@ class ModelMap(BaseModel):
 
     def write_to_cache(self, pickle_file: str = CACHE_PICKLE) -> None:
         """
-        Save a ModelMap object to disk as a pickle file.
+        Save a ModelMap object to disk as a compressed pickle file.
+
+        Uses gzip compression to reduce file size and I/O time.
 
         Args:
             model_map (ModelMap): The ModelMap object to cache.
@@ -293,14 +307,14 @@ class ModelMap(BaseModel):
             None
         """
 
-        with open(pickle_file, 'wb') as f:
-            print(f'writing to cache: {pickle_file}')
-            pickle.dump(self, f)
+        with gzip.open(pickle_file + '.gz', 'wb') as f:
+            print(f'writing to compressed cache: {pickle_file}.gz')
+            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
 
-def get_files_by_type(directory, ext):
+def get_files_by_type(directory, ext, recursive=True):
     """
     List all files in a directory with a given extension.
 
@@ -310,263 +324,220 @@ def get_files_by_type(directory, ext):
     Args:
         directory (str): Directory path to search for files.
         ext (str): File extension (with or without dot) to filter by.
+        recursive (bool): If True, search recursively in subdirectories. Default is True.
 
     Returns:
         list[str]: List of absolute file paths matching the extension.
 
     Example:
         >>> get_files_by_type('/path/to/eplus_files', '.sql')
-        ['/path/to/eplus_files/model1.sql', '/path/to/eplus_files/model2.sql']
+        ['/path/to/eplus_files/model1.sql', '/path/to/eplus_files/subdir/model2.sql']
     """
 
     ext = ext.replace(".", "")
 
-    fsstr = f'{directory}/*.{ext}'
-    files = gb.glob(fsstr)
+    if recursive:
+        fsstr = f'{directory}/**/*.{ext}'
+        files = gb.glob(fsstr, recursive=True)
+    else:
+        fsstr = f'{directory}/*.{ext}'
+        files = gb.glob(fsstr)
 
     return files
 
 
 def get_file_info(fpath) -> dict:
     """
-    Parse a file name to extract model metadata such as codename, prototype, codeyear, city, label, and extension.
+    Extract path-based metadata from a file.
 
-    This function is critical for the MCP server to understand and categorize EnergyPlus model files
-    based on their standardized naming convention. It extracts key metadata that allows the server
-    to organize and filter models by building type, code year, location, and HVAC system.
+    This function extracts only directory and filename information without assuming
+    any specific naming convention. Files are identified by their directory location
+    and stem (filename without extension).
 
     Args:
-        fpath (str): Full file path to parse for metadata extraction.
+        fpath (str): Full file path to parse.
 
     Returns:
-        dict: Dictionary containing parsed metadata with keys:
-            - codename (str): Model code standard (e.g., 'ASHRAE901')
-            - prototype (str): Building prototype (e.g., 'HotelLarge', 'Warehouse')
-            - codeyear (str): Code year (e.g., 'STD2025')
-            - city (str): Location/city name (e.g., 'Buffalo', 'Tampa')
-            - label (str): HVAC system label (e.g., 'gshp', 'vav_ac_blr')
-            - extension (str): File extension (e.g., 'sql', 'epJSON', 'table.htm')
-            - file_name (str): Base filename
-            - file_path (str): Original file path
+        dict: Dictionary containing path metadata with keys:
+            - directory (str): Parent directory path
+            - stem (str): Filename without extension (e.g., 'eplusout', 'somemodel')
+            - extension (str): File extension (e.g., 'sql', 'epJSON', 'htm')
+            - file_name (str): Base filename with extension
+            - file_path (str): Original absolute file path
 
     Example:
-        >>> get_file_info('/path/ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.sql')
+        >>> get_file_info('/path/mydir/eplusout.sql')
         {
-            'codename': 'ASHRAE901',
-            'prototype': 'HotelLarge', 
-            'codeyear': 'STD2025',
-            'city': 'Buffalo',
-            'label': 'gshp',
+            'directory': '/path/mydir',
+            'stem': 'eplusout',
             'extension': 'sql',
-            'file_name': 'ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.sql',
-            'file_path': '/path/ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.sql'
+            'file_name': 'eplusout.sql',
+            'file_path': '/path/mydir/eplusout.sql'
         }
     """
+    p = Path(fpath)
 
-
-    fname = os.path.basename(fpath)
-
-    left = fname.split("_")[:4]
-
-    right = '_'.join(fname.split("_")[5:])
-
-
-    model_lbl = right.split(".")[0]
-
-    ext = '.'.join(right.split(".")[1:])
-
-
-    codename = left[0]
-    prototype = left[1]
-    codeyear = left[2]
-    city = left[3]
-
+    # Get extension without the dot
+    ext = p.suffix.lstrip('.')
 
     return {
-        'codename': codename,
-        'prototype': prototype,
-        'codeyear': codeyear,
-        'city': city,
-        'label': model_lbl,
+        'directory': str(p.parent),
+        'stem': p.stem,
         'extension': ext,
-        'file_name': fname,
-        'file_path': fpath
+        'file_name': p.name,
+        'file_path': str(p.absolute())
     }
 
 
 
 def catalog_path(path):
     """
-    Scan a directory for HTML, SQL, and epJSON files and return their metadata as lists.
+    Scan a directory for HTML, SQL, and epJSON files and group them by directory + stem.
 
     This function is the primary discovery mechanism for the MCP server to inventory
-    all EnergyPlus model files in a directory. It identifies the three main file types
-    that contain model input data, simulation results, and summary reports.
+    all EnergyPlus model files in a directory. Files are grouped together when they share
+    the same directory and filename stem (filename without extension).
 
     Args:
-        path (str): Directory path to scan for EnergyPlus model files.
+        path (str): Directory path to scan for EnergyPlus model files (scanned recursively).
 
     Returns:
-        dict: Dictionary with lists of file metadata for each file type:
-            - html_data (list): List of HTML report file metadata dictionaries
-            - sql_data (list): List of SQL results file metadata dictionaries  
-            - epjson_data (list): List of epJSON input file metadata dictionaries
+        dict: Dictionary where keys are model_ids (directory/stem) and values contain grouped files:
+            {
+                'dir1/model1': {
+                    'directory': 'dir1',
+                    'stem': 'model1',
+                    'html': '/full/path/dir1/model1.htm',
+                    'sql': '/full/path/dir1/model1.sql',
+                    'epjson': '/full/path/dir1/model1.epJSON'
+                },
+                'dir2/model2': { ... }
+            }
 
     Note:
-        Each metadata dictionary contains the same structure as returned by get_file_info(),
-        allowing the MCP server to understand the model characteristics and organize them
-        into a coherent model map.
+        Files with different stems in the same directory are treated as separate models.
+        For example, 'mydir/model1.sql' and 'mydir/model2.sql' would create two distinct
+        model entries: 'mydir/model1' and 'mydir/model2'.
 
     Example:
         >>> catalog_path('/path/to/eplus_files')
         {
-            'html_data': [{'codename': 'ASHRAE901', 'prototype': 'HotelLarge', ...}, ...],
-            'sql_data': [{'codename': 'ASHRAE901', 'prototype': 'HotelLarge', ...}, ...],
-            'epjson_data': [{'codename': 'ASHRAE901', 'prototype': 'HotelLarge', ...}, ...]
+            'eplus_files/run1/eplusout': {
+                'directory': '/path/to/eplus_files/run1',
+                'stem': 'eplusout',
+                'html': '/path/to/eplus_files/run1/eplusout.htm',
+                'sql': '/path/to/eplus_files/run1/eplusout.sql',
+                'epjson': '/path/to/eplus_files/run1/eplusout.epJSON'
+            }
         }
     """
 
-    html_files = get_files_by_type(path, '.htm')
-    sql_files = get_files_by_type(path, '.sql')
-    epjson_files = get_files_by_type(path, '.epJSON')
+    html_files = get_files_by_type(path, '.htm', recursive=True)
+    sql_files = get_files_by_type(path, '.sql', recursive=True)
+    epjson_files = get_files_by_type(path, '.epJSON', recursive=True)
+
+    # Dictionary to group files by (directory, stem)
+    grouped_models = {}
+
+    # Process all files
+    all_files = html_files + sql_files + epjson_files
+
+    for file_path in all_files:
+        file_info = get_file_info(file_path)
+
+        directory = file_info['directory']
+        stem = file_info['stem']
+        ext = file_info['extension'].lower()
+
+        # Create unique key for this model (using relative path from base)
+        # Use Path to get relative path
+        try:
+            rel_dir = Path(directory).relative_to(Path(path))
+            model_key = f"{rel_dir}/{stem}".replace("\\", "/")
+        except ValueError:
+            # If path is not relative, use full directory
+            model_key = f"{directory}/{stem}".replace("\\", "/")
+
+        # Initialize model entry if it doesn't exist
+        if model_key not in grouped_models:
+            grouped_models[model_key] = {
+                'directory': directory,
+                'stem': stem,
+                'html': None,
+                'sql': None,
+                'epjson': None
+            }
+
+        # Assign file to appropriate type
+        if ext in ['htm', 'html']:
+            grouped_models[model_key]['html'] = file_info['file_path']
+        elif ext == 'sql':
+            grouped_models[model_key]['sql'] = file_info['file_path']
+        elif ext == 'epjson':
+            grouped_models[model_key]['epjson'] = file_info['file_path']
+
+    return grouped_models
 
 
-    html_data = [get_file_info(x) for x in html_files]
-    sql_data = [get_file_info(x) for x in sql_files]
-    epjson_data = [get_file_info(x) for x in epjson_files]
-
-    return {'html_data': html_data, 'sql_data': sql_data, 'epjson_data': epjson_data}
-
-
-def get_model_map(listdict):
+def get_model_map(grouped_models):
     """
-    Build a ModelMap object from a dictionary of file info lists (from catalog_path).
+    Build a ModelMap object from grouped model files (from catalog_path).
 
     This function is the core model organization mechanism for the MCP server. It takes
-    the cataloged file information and creates a unified ModelMap that groups related
-    files (HTML, SQL, epJSON) into coherent model objects. This enables the server
-    to provide integrated access to all aspects of each EnergyPlus model.
+    the cataloged and grouped file information and creates a unified ModelMap that contains
+    model objects with their associated files (HTML, SQL, epJSON).
 
     Args:
-        listdict (dict): Dictionary with file metadata lists containing:
-            - 'html_data': List of HTML report file metadata
-            - 'sql_data': List of SQL results file metadata  
-            - 'epjson_data': List of epJSON input file metadata
+        grouped_models (dict): Dictionary from catalog_path() where keys are model_ids
+                              and values contain grouped file paths:
+            {
+                'dir/stem': {
+                    'directory': '/full/path/dir',
+                    'stem': 'stem',
+                    'html': '/full/path/dir/stem.htm',
+                    'sql': '/full/path/dir/stem.sql',
+                    'epjson': '/full/path/dir/stem.epJSON'
+                }
+            }
 
     Returns:
         ModelMap: Populated ModelMap object containing ModelFileData objects,
                  each representing a complete EnergyPlus model with all associated files.
 
     Note:
-        The function handles the complex logic of matching files that belong to the same
-        model based on their parsed metadata (codename, prototype, codeyear, city, label).
-        This allows the MCP server to treat each model as a unified entity regardless
-        of how the files are stored on disk.
+        Files are already grouped by catalog_path() based on directory and stem.
+        This function simply creates the ModelFileData objects and populates the ModelMap.
 
     Example:
         Input from catalog_path() gets transformed into a ModelMap where each model
         has references to its HTML report, SQL results, and epJSON input files.
     """
 
-    htmldata = listdict['html_data']
-    epjsondata = listdict['epjson_data']
-    sqldata = listdict['sql_data']
-
     catalog = ModelMap()
 
-    def handle_merge_obj(
-            catalog: ModelMap,
-            obj: list[dict],
-            ftype: Literal['sql', 'epjson', 'html']
-    ):
+    for model_id, file_info in grouped_models.items():
+        directory = file_info['directory']
+        stem = file_info['stem']
 
-        for h in obj:
+        # Create the model object
+        model = ModelFileData(
+            model_id=model_id,
+            directory=directory,
+            stem=stem
+        )
 
-            codename = h['codename']
-            prototype = h['prototype']
-            codeyear = h['codeyear']
-            city = h['city']
-            label = h['label']
-            file_path = h['file_path']
-            filepath_abs = os.path.abspath(h['file_path'])
+        # Attach file data objects if files exist
+        if file_info['html']:
+            model.html_data = HtmlFileData(file_path=file_info['html'])
 
+        if file_info['sql']:
+            model.sql_data = SqlFileData(file_path=file_info['sql'])
 
-            # TODO should ensure this is unique.
-            model_id = f'{codename}|{prototype}|{codeyear}|{city}|{label}'
+        if file_info['epjson']:
+            model.epjson_data = EpJsonFileData(file_path=file_info['epjson'])
 
-            # check if exists
-            model_search = catalog.search_models(
-                codename=codename,
-                prototype=prototype,
-                codeyear=codeyear,
-                city=city,
-                label=label
-            )
-
-
-            # if no match
-            if len(model_search) == 0:
-                model = ModelFileData(
-                    codename=codename,
-                    prototype=prototype,
-                    codeyear=codeyear,
-                    city=city,
-                    label=label,
-                    model_id=model_id
-                )
-
-                catalog._add_model(model)
-
-            elif len(model_search) == 1:
-                model = model_search[0]
-            else:
-                raise ValueError('multiples found')
-
-            obj_dict = {
-                'sql': SqlFileData,
-                'epjson': EpJsonFileData,
-                'html': HtmlFileData
-            }
-
-            file_obj = obj_dict[ftype](
-                codename=codename,
-                prototype=prototype,
-                codeyear=codeyear,
-                city=city,
-                label=label,
-                file_path=filepath_abs
-            )
-
-            if ftype == 'sql':
-                file_obj.file_path = filepath_abs
-                model.sql_data = file_obj
-            elif ftype == 'html':
-                file_obj.file_path = filepath_abs
-                model.html_data = file_obj
-            elif ftype == 'epjson':
-                file_obj.file_path = filepath_abs
-                model.epjson_data = file_obj
-            else:
-                raise ValueError('parsing error')
-
-
-    handle_merge_obj(
-        catalog=catalog,
-        obj=htmldata,
-        ftype='html'
-    )
-
-    handle_merge_obj(
-        catalog=catalog,
-        obj=sqldata,
-        ftype='sql'
-    )
-
-    handle_merge_obj(
-        catalog=catalog,
-        obj=epjsondata,
-        ftype='epjson'
-    )
+        # Add model to catalog
+        catalog._add_model(model)
 
     return catalog
 
@@ -598,9 +569,18 @@ def read_model_map_from_cache(pickle_file: str) -> ModelMap:
         is corrupted by falling back to rebuilding the ModelMap from the source directory.
     """
 
-    with open(pickle_file, 'rb') as f:
-        print(f'reading cached file {pickle_file}')
-        pc = pickle.load(f)
+    # Try compressed file first, fall back to uncompressed
+    compressed_file = pickle_file + '.gz'
+    if os.path.exists(compressed_file):
+        with gzip.open(compressed_file, 'rb') as f:
+            print(f'reading compressed cache: {compressed_file}')
+            pc = pickle.load(f)
+    elif os.path.exists(pickle_file):
+        with open(pickle_file, 'rb') as f:
+            print(f'reading uncompressed cache: {pickle_file}')
+            pc = pickle.load(f)
+    else:
+        raise FileNotFoundError(f"Cache file not found: {pickle_file}")
 
     return pc
 
@@ -649,21 +629,48 @@ def reset_cache(pickle_file):
 
 def read_or_initialize_model_map(directory: str, pickle_file: str = CACHE_PICKLE) -> ModelMap:
     """
-    Load the ModelMap from cache if available, otherwise build and cache it from the given directory.
+    Load the ModelMap from cache if available and valid, otherwise rebuild.
+
+    Validates cache by checking if directory modification time is newer than cache file.
+    This ensures cache is invalidated when files are added/removed/modified.
 
     Args:
-        directory (str): Directory to scan if cache is missing.
+        directory (str): Directory to scan if cache is missing or stale.
 
     Returns:
         ModelMap: The loaded or newly built ModelMap object.
     """
 
-    if os.path.exists(pickle_file):
-        print('reading model map')
-        model_map = read_model_map_from_cache(pickle_file)
+    cache_valid = False
 
+    # Check both compressed and uncompressed cache files
+    compressed_file = pickle_file + '.gz'
+    cache_file_to_check = compressed_file if os.path.exists(compressed_file) else pickle_file
+
+    if os.path.exists(cache_file_to_check):
+        # Check if cache is newer than directory
+        cache_mtime = os.path.getmtime(cache_file_to_check)
+        try:
+            # Get latest modification time in directory tree
+            dir_mtime = os.path.getmtime(directory)
+            # Walk directory to find newest file
+            for root, dirs, files in os.walk(directory):
+                for file in files:
+                    if file.endswith(('.epJSON', '.sql', '.htm', '.html')):
+                        file_path = os.path.join(root, file)
+                        file_mtime = os.path.getmtime(file_path)
+                        dir_mtime = max(dir_mtime, file_mtime)
+
+            # Cache is valid if it's newer than all model files
+            cache_valid = cache_mtime > dir_mtime
+        except (OSError, FileNotFoundError):
+            cache_valid = False
+
+    if cache_valid:
+        print('reading model map from cache')
+        model_map = read_model_map_from_cache(pickle_file)
     else:
-        print('initializing model map')
+        print('initializing model map (cache missing or stale)')
         model_map = initialize_model_map_from_directory(directory)
         model_map.write_to_cache()
 

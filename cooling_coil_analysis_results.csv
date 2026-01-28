@@ -1,0 +1,10 @@
+Coil Name,Zone,Air Inlet Node,Air Outlet Node,Zone Area (m²),Zone Area (SF),Nominal Total Capacity (W),Nominal Sensible Capacity (W),Nominal Total Capacity (Tons),Sensible Heat Ratio,COP,Final Sensible Capacity (W),Air Flow (m³/s),Air Flow (CFM),SF per Ton,CFM per Ton
+Room_1_Flr_3 Cooling Coil,Room_1_Flr_3,Room_1_Flr_3 Return,Room_1_Flr_3 Cooling Coil Outlet,39.02,420.03,15319.85,13620.12,4.36,0.89,4.69,13620.12,1.291884,2737.35,96.42,628.39
+Room_1_Flr_6 Cooling Coil,Room_1_Flr_6,Room_1_Flr_6 Return,Room_1_Flr_6 Cooling Coil Outlet,39.02,420.05,4158.46,3704.05,1.18,0.89,4.69,3704.051,0.351674,745.16,355.24,630.18
+Room_2_Flr_3 Cooling Coil,Room_2_Flr_3,Room_2_Flr_3 Return,Room_2_Flr_3 Cooling Coil Outlet,39.02,419.98,14874.61,13215.38,4.23,0.89,4.69,13215.378,1.25306,2655.08,99.3,627.75
+Room_2_Flr_6 Cooling Coil,Room_2_Flr_6,Room_2_Flr_6 Return,Room_2_Flr_6 Cooling Coil Outlet,39.02,419.98,4033.45,3590.41,1.15,0.89,4.69,3590.407,0.340774,722.06,366.19,629.58
+Room_3_Mult9_Flr_6 Cooling Coil,Room_3_Mult9_Flr_6,Room_3_Mult9_Flr_6 Return,Room_3_Mult9_Flr_6 Cooling Coil Outlet,24.53,264.04,16171.65,14181.58,4.6,0.88,4.69,14181.581,1.335318,2829.38,57.42,615.31
+Room_3_Mult19_Flr_3 Cooling Coil,Room_3_Mult19_Flr_3,Room_3_Mult19_Flr_3 Return,Room_3_Mult19_Flr_3 Cooling Coil Outlet,24.52,263.97,77127.42,69447.11,21.93,0.9,4.69,69447.113,6.649862,14090.26,12.04,642.49
+Room_4_Mult19_Flr_3 Cooling Coil,Room_4_Mult19_Flr_3,Room_4_Mult19_Flr_3 Return,Room_4_Mult19_Flr_3 Cooling Coil Outlet,24.53,264.04,91921.16,79894.49,26.14,0.87,4.69,79894.493,7.485767,15861.44,10.1,606.85
+Room_5_Flr_3 Cooling Coil,Room_5_Flr_3,Room_5_Flr_3 Return,Room_5_Flr_3 Cooling Coil Outlet,39.02,420.03,13604.54,12057.81,3.87,0.89,4.69,12057.808,1.141862,2419.47,108.58,625.45
+Room_6_Flr_3 Cooling Coil,Room_6_Flr_3,Room_6_Flr_3 Return,Room_6_Flr_3 Cooling Coil Outlet,39.02,419.98,13067.31,11567.31,3.72,0.89,4.69,11567.315,1.094695,2319.53,113.03,624.26
