@@ -46,12 +46,21 @@ Each EnergyPlus model consists of three main file types:
 - **`.sql`** - Simulation results database (hourly timeseries data, summary tables)
 - **`.table.htm`** - HTML summary reports (tabular summaries of results)
 
-## Model Naming Convention
+## Model Discovery (Filename-Agnostic)
 
-Files follow this naming pattern:
-`{CODENAME}_{PROTOTYPE}_{CODEYEAR}_{CITY}_{SKIPOPTIONS}_{HVAC_LABEL}.{EXTENSION}`
+The server automatically discovers and groups files by **directory location and filename stem** (filename without extension). This means the server works with **any filename pattern** - there is no required naming convention.
 
-Example: `ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.epJSON`
+Examples of valid filenames that are automatically discovered:
+- `ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.epJSON`
+- `my_model_v1.sql`
+- `building_simulation.htm`
+
+Model IDs are generated as: `{relative_directory}/{filename_stem}`
+
+Examples:
+- `eplus_files/run1/eplusout`
+- `simulations/hotel_model`
+- `data/ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp`
 
 ## Available Building Types
 
@@ -92,11 +101,13 @@ This scans the directory and creates a cached inventory of all available models.
 ### 2. Discover Available Models
 
 ```python
-get_available_models(directory='eplus_files')
+models = get_available_models(directory='eplus_files')
 ```
 
-Returns a list of all models with their metadata and unique `model_id` values in the format:
-`ASHRAE901|HotelLarge|STD2025|Buffalo|gshp`
+Returns a list of all models with their metadata. Example model IDs:
+- `eplus_files/run1/eplusout`
+- `simulations/buffalo_hotel_gshp`
+- `data/model_v2`
 
 ### 3. Explore Model Data
 
@@ -105,8 +116,12 @@ Using the `model_id` from step 2, you can:
 #### Search HTML Tables by Keywords
 
 ```python
+# First get your model_id from get_available_models()
+models = get_available_models()
+model_id = models[0]['model_id']  # e.g., 'eplus_files/run1/eplusout'
+
 search_html_tables_by_keyword(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     keywords=['cooling', 'sizing', 'capacity'],
     case_sensitive=False
 )
@@ -122,7 +137,7 @@ Returns tables matching keywords like:
 
 ```python
 get_html_table_by_tuple(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling')
 )
 ```
@@ -130,7 +145,7 @@ get_html_table_by_tuple(
 #### Get Timeseries Variables
 
 ```python
-get_sql_available_hourlies(id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp')
+get_sql_available_hourlies(id=model_id)
 ```
 
 Returns available hourly timeseries variables with their RDD IDs for data extraction.
@@ -139,7 +154,7 @@ Returns available hourly timeseries variables with their RDD IDs for data extrac
 
 ```python
 search_epjson_objects(
-    model_id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    model_id=model_id,
     search_pattern='cooling',
     case_sensitive=False
 )
@@ -149,7 +164,7 @@ search_epjson_objects(
 
 ```python
 get_timeseries_report_by_rddid(
-    model_id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    model_id=model_id,
     rddid=123
 )
 ```
@@ -163,14 +178,14 @@ Returns hourly data for a specific variable (use RDD ID from step 3).
 ```python
 # Simple statistics on timeseries data
 execute_pandas_on_timeseries(
-    model_id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    model_id=model_id,
     rddid=179,
     query="df['Value'].mean()"
 )
 
 # HTML table analysis
 execute_pandas_on_html_table(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling'),
     query="df.describe()"
 )
@@ -181,7 +196,7 @@ execute_pandas_on_html_table(
 ```python
 # Complex timeseries analysis
 execute_multiline_pandas_on_timeseries(
-    model_id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    model_id=model_id,
     rddid=179,
     code='''
     # Convert energy units and calculate monthly totals
@@ -201,7 +216,7 @@ execute_multiline_pandas_on_timeseries(
 
 # Complex HTML table analysis
 execute_multiline_pandas_on_html_table(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling'),
     code='''
     # Convert to numeric and calculate totals
@@ -223,12 +238,11 @@ Returns hourly data for a specific variable (use RDD ID from step 3).
 ### Compare HVAC Systems Energy Performance
 
 ```python
-# 1. Get models for the same building type and location with different HVAC systems
+# 1. Get all available models
 models = get_available_models()
-buffalo_hotel_models = [m for m in models if m['city']=='Buffalo' and m['prototype']=='HotelLarge']
 
-# 2. Extract and analyze energy consumption for each system
-for model in buffalo_hotel_models:
+# 2. Extract and analyze energy consumption for each model
+for model in models:
     model_id = model['model_id']
 
     # Get electricity consumption timeseries (typically RDD ID 179)
@@ -242,7 +256,7 @@ for model in buffalo_hotel_models:
         peak_demand = df['kWh'].max()
 
         result = {
-            'hvac_system': model_id.split('|')[-1],
+            'model_id': model_id,
             'annual_kwh': annual_total,
             'peak_kw': peak_demand
         }
@@ -253,12 +267,13 @@ for model in buffalo_hotel_models:
 ### Climate Impact Analysis
 
 ```python
-# 1. Compare same building/HVAC in different climates
-buffalo_gshp = 'ASHRAE901|HotelLarge|STD2025|Buffalo|gshp'
-tampa_gshp = 'ASHRAE901|HotelLarge|STD2025|Tampa|gshp'
+# 1. Get all available models
+models = get_available_models()
 
-# 2. Extract heating vs cooling energy for each location
-for model_id in [buffalo_gshp, tampa_gshp]:
+# 2. Extract heating vs cooling energy patterns for each location
+for model in models:
+    model_id = model['model_id']
+
     climate_analysis = execute_multiline_pandas_on_timeseries(
         model_id=model_id,
         rddid=179,
@@ -274,7 +289,7 @@ for model_id in [buffalo_gshp, tampa_gshp]:
         summer_energy = df[df['month'].isin([6, 7, 8])]['kWh'].sum()
 
         result = {
-            'location': model_id.split('|')[3],
+            'model_id': model_id,
             'winter_kwh': winter_energy,
             'summer_kwh': summer_energy,
             'cooling_vs_heating_ratio': summer_energy / winter_energy if winter_energy > 0 else 'inf'
@@ -286,28 +301,32 @@ for model_id in [buffalo_gshp, tampa_gshp]:
 ### Building Performance Deep Dive
 
 ```python
+# Get a model_id first
+models = get_available_models()
+model_id = models[0]['model_id']
+
 # 1. Get building characteristics from epJSON
 building_components = search_epjson_objects(
-    model_id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    model_id=model_id,
     search_pattern='Zone',
     case_sensitive=False
 )
 
 # 2. Get HVAC sizing information
 hvac_sizing = search_html_tables_by_keyword(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     keywords=['sizing', 'capacity', 'coil']
 )
 
 # 3. Analyze zone-level performance
 zone_cooling_loads = get_html_table_by_tuple(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling')
 )
 
 # 4. Run complex analysis combining multiple data sources
 load_analysis = execute_pandas_on_html_table(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling'),
     query="df.groupby(df.index)['Calculated Design Load [W]'].sum()"
 )
@@ -316,23 +335,27 @@ load_analysis = execute_pandas_on_html_table(
 ### Advanced Keyword Searching
 
 ```python
+# Get a model_id first
+models = get_available_models()
+model_id = models[0]['model_id']
+
 # Find all cooling-related data
 cooling_tables = search_html_tables_by_keyword(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     keywords=['cooling', 'coil', 'capacity', 'chiller', 'dx cooling'],
     case_sensitive=False
 )
 
 # Find energy consumption summaries
 energy_tables = search_html_tables_by_keyword(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     keywords=['energy', 'consumption', 'end use', 'utility'],
     case_sensitive=False
 )
 
 # Find HVAC component details
 hvac_tables = search_html_tables_by_keyword(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     keywords=['fan', 'pump', 'air loop', 'plant loop'],
     case_sensitive=False
 )
@@ -438,14 +461,14 @@ Logs are stored in: `monitor_logs/mcp_calls.log`
 ## Tips for Effective Use
 
 1. **Always start with `initialize_model_map()`** to initialize the cache
-2. **Use `get_available_models()`** to discover what's available before diving into specific models
-3. **Use keyword search** with `search_html_tables_by_keyword()` to find relevant tables quickly
-4. **Check `get_sql_available_hourlies()`** to see what timeseries variables are available before extracting data
-5. **Model IDs are case-sensitive** and must match exactly the format: `CODENAME|PROTOTYPE|CODEYEAR|CITY|LABEL`
-6. **Use pandas functions** for complex data analysis instead of extracting raw data
-7. **For large datasets**, use multi-line pandas code with summary calculations rather than returning full datasets
-8. **Leverage search functions** to explore unfamiliar models before extracting specific data
-9. **Remember the naming convention** includes 'SkipEC' in filenames but not in model IDs
+2. **Use `get_available_models()`** to discover available models and get their model_ids
+3. **Model IDs are generated from directory structure and filename stem** (e.g., `eplus_files/run1/eplusout`)
+4. **Filename format is flexible** - the server works with any filename pattern
+5. **Use keyword search** with `search_html_tables_by_keyword()` to find relevant tables quickly
+6. **Check `get_sql_available_hourlies()`** to see what timeseries variables are available before extracting data
+7. **Use pandas functions** for complex data analysis instead of extracting raw data
+8. **For large datasets**, use multi-line pandas code with summary calculations rather than returning full datasets
+9. **Leverage search functions** to explore unfamiliar models before extracting specific data
 10. **Use tuple format** for HTML table queries: `(report_for, report_name, table_name)`
 
 ## Function Reference Quick Guide

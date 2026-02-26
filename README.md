@@ -49,12 +49,16 @@ Each EnergyPlus model consists of three main file types:
 - **`.sql`** - Simulation results database (hourly timeseries data, summary tables)
 - **`.table.htm`** - HTML summary reports (tabular summaries of results)
 
-## Model Naming Convention
+## Model Discovery
 
-Files follow this pattern:
-`{CODENAME}_{PROTOTYPE}_{CODEYEAR}_{CITY}_{SKIPOPTIONS}_{HVAC_LABEL}.{EXTENSION}`
+The server automatically discovers models by scanning for `.epJSON`, `.sql`, and `.htm` files in the specified directory. Models are identified by their **directory location and filename stem** (filename without extension), making the server **completely filename-agnostic**. Files can use any naming convention.
 
-Example: `ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.epJSON`
+Examples of valid model filenames:
+- `ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.epJSON`
+- `my_building_model_v1.sql`
+- `simple_model.htm`
+
+All are discovered and grouped correctly regardless of naming pattern.
 
 ## Available Data
 
@@ -131,16 +135,18 @@ models = get_available_models()
 ### 2. Explore Available Data
 
 ```python
+# Get the model_id from get_available_models() first
+models = get_available_models()
+model_id = models[0]['model_id']  # e.g., 'eplus_files/run1/eplusout'
+
 # Find cooling-related tables
 cooling_tables = search_html_tables_by_keyword(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     keywords=['cooling', 'sizing', 'capacity']
 )
 
 # Get available timeseries variables
-timeseries_vars = get_sql_available_hourlies(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp'
-)
+timeseries_vars = get_sql_available_hourlies(id=model_id)
 ```
 
 ### 3. Extract and Analyze Data
@@ -148,13 +154,13 @@ timeseries_vars = get_sql_available_hourlies(
 ```python
 # Get a specific HTML table
 sizing_data = get_html_table_by_tuple(
-    id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling')
 )
 
 # Analyze timeseries data with pandas
 energy_analysis = execute_multiline_pandas_on_timeseries(
-    model_id='ASHRAE901|HotelLarge|STD2025|Buffalo|gshp',
+    model_id=model_id,
     rddid=179,
     code='''
     # Convert energy units and calculate monthly totals

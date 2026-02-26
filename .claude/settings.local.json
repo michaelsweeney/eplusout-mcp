@@ -3,7 +3,11 @@
     "allow": [
       "Bash(python -m py_compile:*)",
       "Bash(python test_refactor.py:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(grep:*)",
+      "Bash(git:*)",
+      "Bash(done)",
+      "Bash(rm:*)"
     ]
   }
 }

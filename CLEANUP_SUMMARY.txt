@@ -1,0 +1,57 @@
+# Cleanup Summary
+
+## Files Deleted (22 total)
+
+### Analysis Scripts (11 files)
+- analysis_summary.py
+- analyze_cooling_sizing.py
+- analyze_wshp_cooling_sizing.py
+- coincidence_analysis_optimized.py
+- cooling_coil_analysis.py
+- cooling_coil_sizing_analysis.py
+- direct_coincidence_analysis.py
+- extract_sizing_data.py
+- mcp_coincidence_analysis.py
+- peak_coincident_day_analysis.py
+- query_component_sizing.py
+
+### Test/Debug Scripts (2 files)
+- test_logging.py
+- test_refactor.py
+
+### Analysis Output Documents (9 files)
+- ANALYSIS_SUMMARY.md
+- COOLING_COIL_ANALYSIS_SUMMARY.md
+- sizing_extraction_summary.md
+- component_sizing_summary_output.txt
+- cooling_coil_analysis_results.csv
+- cooling_coil_sizing_analysis_output.csv
+- peak_coincident_day_hourly_data.csv
+- peak_coincident_day_hourly_data_optimized.csv
+- wshp_cooling_coil_analysis.csv
+
+### Generated Logs (1 file)
+- monitor_logs/mcp_calls.log
+
+## Files Updated
+
+### README.md
+- Replaced "Model Naming Convention" section with "Model Discovery (Filename-Agnostic)"
+- Updated Quick Start Guide examples to use dynamic model_id from get_available_models()
+- Clarified that server works with any filename pattern
+
+### src/CLAUDE.md
+- Updated "Model Naming Convention" to "Model Discovery (Filename-Agnostic)"
+- Fixed all model_id examples from pipe-separated format (ASHRAE901|HotelLarge|...) to directory/stem format (eplus_files/run1/eplusout)
+- Updated all code examples to use model_id retrieved from get_available_models()
+- Updated Common Use Cases (HVAC comparison, Climate Impact, Building Performance)
+- Updated Tips for Effective Use to reflect filename-agnostic approach
+
+### .gitignore
+- Added monitor_logs/ to ignore generated log files
+
+## Project Status
+✅ Core MCP server intact and functional
+✅ Documentation updated to reflect filename-agnostic implementation
+✅ Repository cleaned of extraneous analysis scripts and outputs
+✅ Ready for production use
