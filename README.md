@@ -224,6 +224,79 @@ The server includes comprehensive token counting and logging:
 - Logs stored in JSON format for analysis
 - Automatic result truncation to prevent token overflow
 
+## Future Security & Code Quality Considerations
+
+This section documents security and code quality issues identified during review that should be addressed in future versions:
+
+### Critical Security Issues (High Priority)
+
+1. **SQL Injection Vulnerabilities** (`src/tools/func_sql.py`)
+   - F-string SQL queries with user-controlled `rddid` parameter (lines 413, 424)
+   - String concatenation with dynamic data in SQL queries (line 474)
+   - **Mitigation:** Use parameterized queries with `?` placeholders instead of string formatting
+   - **Impact:** Could allow attackers to exfiltrate or modify database contents
+
+2. **Unsafe Pickle Deserialization** (`src/model_data.py`)
+   - Model map cached using `pickle` which can execute arbitrary code if tampered with (lines 316, 587, 591)
+   - **Mitigation:** Replace with JSON serialization or safer formats (protobuf, msgpack with schema validation)
+   - **Impact:** If cache file is compromised, arbitrary code execution is possible
+   - **Note:** Currently low risk as cache is local-only, but should be addressed for production use
+
+3. **Unsafe Code Execution** (`src/dataloader.py`)
+   - Use of `eval()` and `exec()` for pandas queries (lines 122, 233)
+   - **Current Mitigation:** Restricted globals dictionary limits available functions
+   - **Remaining Risk:** Can still access object attributes and methods to potentially bypass restrictions
+   - **Recommendation:** Replace with safer expression evaluation (numexpr, asteval with sandboxing, or AST validation)
+
+### High Priority Issues
+
+4. **Unvalidated File Paths** (`src/tools/func_sql.py`)
+   - No validation that SQL file paths are within expected directories
+   - **Risk:** Path traversal attacks could access files outside intended scope
+   - **Mitigation:** Add path validation using `Path.resolve()` and `Path.is_relative_to()`
+
+5. **Missing Input Validation**
+   - No bounds checking on string parameters (search patterns, keywords, code queries)
+   - **Risk:** Could cause DoS attacks via extremely long regex patterns or code
+   - **Mitigation:** Add input length validation and type checking to all user-facing tools
+
+6. **Bare Exception Handling**
+   - `except Exception as e:` catches all exceptions including SystemExit and KeyboardInterrupt (func_html.py:30, 206)
+   - **Mitigation:** Catch specific exceptions only (FileNotFoundError, IOError, etc.)
+
+### Code Quality Issues
+
+7. **Dead Code & Broken Functions** (`src/tools/func_sql.py`)
+   - `_exec_query()` function has a bug (execute() called without query parameter, line 88)
+   - `old_getseries()` method is obsolete but not removed (lines 461-498)
+   - Unreachable return statement in `availseries()` (line 382)
+   - **Action:** Remove broken functions or properly implement and use them
+
+8. **Unused Imports**
+   - Multiple files have unused imports (func_epjson.py, func_html.py, helpers.py)
+   - **Action:** Clean up to reduce code complexity
+
+9. **Logging Issues**
+   - `print()` statements used instead of logging module (model_data.py, func_sql.py)
+   - No log levels (ERROR, WARNING, INFO, DEBUG)
+   - **Action:** Replace with proper logging configuration
+
+10. **Sensitive Data in Logs** (`src/monitor.py`)
+    - Full arguments logged which may contain file paths or sensitive data
+    - **Mitigation:** Sanitize logged arguments, avoid logging full file paths
+
+### Known Bugs to Fix
+
+- `get_tables()` in `src/model_data.py:123` instantiates wrong class (SqlTimeseries instead of SqlTables)
+- Parameter mismatch in logging decorator (`src/monitor.py`) between function signature and call site
+- Missing log entry keys in `get_log_stats()` that are expected to exist
+
+### Testing Gaps
+
+- No automated tests present in repository
+- Recommended: Add unit tests for SQL functions, input validation, and data extraction tools
+- Add integration tests for end-to-end workflows
+
 ## Support
 
 For detailed usage instructions and examples, use:
