@@ -62,6 +62,10 @@ All are discovered and grouped correctly regardless of naming pattern.
 
 ## Available Data
 
+### Example Files Location
+
+The `example-files` directory contains sample EnergyPlus models. See `example-files/about.md` for the location of the original project files these were copied from.
+
 ### Building Types
 
 - **HotelLarge** - Large hotel building prototype
