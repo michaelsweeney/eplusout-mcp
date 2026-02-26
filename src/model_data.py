@@ -307,6 +307,10 @@ class ModelMap(BaseModel):
             None
         """
 
+        # Create cache directory if it doesn't exist
+        cache_dir = Path(pickle_file).parent
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
         with gzip.open(pickle_file + '.gz', 'wb') as f:
             print(f'writing to compressed cache: {pickle_file}.gz')
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -380,9 +384,14 @@ def get_file_info(fpath) -> dict:
     # Get extension without the dot
     ext = p.suffix.lstrip('.')
 
+    # Handle .table.htm files - remove .table. to get the correct stem
+    stem = p.stem
+    if stem.endswith('.table') and ext in ['htm', 'html']:
+        stem = stem[:-6]  # Remove '.table'
+
     return {
         'directory': str(p.parent),
-        'stem': p.stem,
+        'stem': stem,
         'extension': ext,
         'file_name': p.name,
         'file_path': str(p.absolute())
@@ -433,6 +442,7 @@ def catalog_path(path):
     """
 
     html_files = get_files_by_type(path, '.htm', recursive=True)
+    html_files += get_files_by_type(path, '.html', recursive=True)
     sql_files = get_files_by_type(path, '.sql', recursive=True)
     epjson_files = get_files_by_type(path, '.epJSON', recursive=True)
 
