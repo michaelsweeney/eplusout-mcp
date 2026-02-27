@@ -31,7 +31,7 @@ python --version  # Should be 3.13+
 # Start the MCP server (uses stdio transport)
 uv run main.py
 
-# The server can be configured in Claude Desktop's config at ~/.claude/desktop/claude_desktop_config.json
+# See README.md "Quickstart" section for Claude Desktop configuration
 ```
 
 ## Architecture Overview
@@ -113,11 +113,11 @@ mcp-eplus-outputs/
 │       ├── helpers.py         # Helper functions
 │       └── logger.py          # Logging setup
 │
-├── schema/                      # Directory for result schema documentation
-├── notebooks/                   # Jupyter notebooks for analysis
-│
-└── eplus_files/                # Example EnergyPlus model files (gitignored)
-    └── prescriptive_variability_sample/
+├── tests/                       # Pytest test suite
+├── example-files/               # Sample EnergyPlus models for testing
+├── ai-docs/                     # AI-generated analysis and audit docs
+├── schema/                      # EnergyPlus JSON schema
+└── notebooks/                   # Jupyter notebooks for exploration
 ```
 
 ## Common Development Commands
@@ -125,11 +125,14 @@ mcp-eplus-outputs/
 ### Testing
 
 ```bash
-# There are currently no automated tests in the repo
-# Manual testing involves:
-# 1. Starting the server: uv run main.py
-# 2. Using it via Claude Desktop or direct MCP client
+# Run all tests
+uv run pytest
+
+# Run a specific test file
+uv run pytest tests/test_sql_timeseries.py
 ```
+
+See `tests/TESTING.md` for test coverage details.
 
 ### Code Structure Tips
 
@@ -159,43 +162,13 @@ Key dependencies (see `pyproject.toml`):
 
 ## Key Concepts
 
-### Model Discovery (Filename-Agnostic)
-
-The server works with ANY filename pattern. Models are identified by:
-- **Directory structure** - Where files are located
-- **Filename stem** - Filename without extension
-
-Examples:
-- `eplus_files/run1/model.epJSON` + `eplus_files/run1/model.sql` → model ID: `eplus_files/run1/model`
-- `data/ASHRAE901_HotelLarge_STD2025_Buffalo_gshp.epJSON` → model ID: `data/ASHRAE901_HotelLarge_STD2025_Buffalo_gshp`
-
-### Model File Types
-
-Each EnergyPlus model may contain three file types:
-- **`.epJSON`** - Building input definition (geometry, materials, HVAC systems, schedules)
-- **`.sql`** - Simulation results database (timeseries data, summary tables)
-- **`.table.htm`** - HTML summary reports (tabular performance summaries)
-
 ### RDD ID
 
 Report Data Dictionary (RDD) ID - Unique identifier for timeseries variables in the SQL database. Used to extract specific hourly data like "Facility Total Electric Demand Power".
 
 ## Deployment & Configuration
 
-### Claude Desktop Integration
-
-Add to `~/.claude/desktop/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "mcp_eplus_outputs": {
-      "command": "uv",
-      "args": ["--directory", "/path/to/mcp-eplus-outputs", "run", "main.py"]
-    }
-  }
-}
-```
+See README.md "Quickstart: Setup with Claude Desktop" for installation and Claude Desktop config.
 
 ### Cache Management
 
@@ -203,16 +176,9 @@ Add to `~/.claude/desktop/claude_desktop_config.json`:
 - **Refresh**: Call `initialize_model_map()` to rescan and refresh
 - **Size**: Small (pickled model metadata only, not data files)
 
-## Performance Considerations
-
-- **Model caching**: Initial `initialize_model_map()` scans filesystem; subsequent calls use cache
-- **Result truncation**: Large datasets automatically truncated to prevent token overflow (see `dataloader.py:_format_result()`)
-- **Token tracking**: All calls logged for monitoring (useful for budget management)
-- **HTML parsing**: Tables parsed on-demand when accessed
-
 ## Notes for Future Developers
 
 - The server is designed for read-only access to simulation results (no modifications to EnergyPlus files)
 - All user code execution (pandas queries) happens in a restricted, safe environment
-- The project was recently cleaned up (see `CLEANUP_SUMMARY.txt`) - extraneous analysis scripts were removed
+- The project was recently cleaned up (see `ai-docs/CLEANUP_SUMMARY.txt`) - extraneous analysis scripts were removed
 - The existing `src/CLAUDE.md` is user-facing documentation for MCP tool usage, not developer docs

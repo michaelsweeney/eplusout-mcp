@@ -12,34 +12,89 @@ This Model Context Protocol (MCP) server provides comprehensive access to Energy
 - **Logging & Monitoring**: Built-in token consumption tracking and function call monitoring
 - **Flexible Model Discovery**: Automatic model cataloging and metadata extraction
 
-## Installation
+## Quickstart: Setup with Claude Desktop
+
+### Prerequisites
+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
+- [Claude Desktop](https://claude.ai/download)
+
+### Step 1: Clone the repository
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone https://github.com/your-org/mcp-eplus-outputs.git
 cd mcp-eplus-outputs
+```
 
-# Install dependencies
+### Step 2: Install dependencies
+
+```bash
 uv sync
+```
 
-# Run the server
+This installs Python 3.13+ and all required packages automatically.
+
+### Step 3: Verify the server runs
+
+```bash
 uv run main.py
 ```
 
-## Configuration
+You should see the server start without errors. Press `Ctrl+C` to stop it.
 
-Add to your Claude Desktop configuration:
+### Step 4: Configure Claude Desktop
+
+Open your Claude Desktop config file:
+
+| OS      | Config file location                                                        |
+|---------|-----------------------------------------------------------------------------|
+| macOS   | `~/Library/Application Support/Claude/claude_desktop_config.json`           |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json`                               |
+| Linux   | `~/.config/Claude/claude_desktop_config.json`                               |
+
+Add the MCP server entry (create the file if it doesn't exist). Replace the path with the **absolute path** to where you cloned the repo:
+
+**macOS / Linux:**
 
 ```json
 {
   "mcpServers": {
     "mcp_eplus_outputs": {
       "command": "uv",
-      "args": ["--directory", "C:/path/to/mcp-eplus-outputs", "run", "main.py"]
+      "args": ["--directory", "/Users/yourname/code/mcp-eplus-outputs", "run", "main.py"]
     }
   }
 }
 ```
+
+**Windows:**
+
+```json
+{
+  "mcpServers": {
+    "mcp_eplus_outputs": {
+      "command": "uv",
+      "args": ["--directory", "C:/Users/yourname/code/mcp-eplus-outputs", "run", "main.py"]
+    }
+  }
+}
+```
+
+> **Note:** Use forward slashes (`/`) in the path, even on Windows.
+
+### Step 5: Restart Claude Desktop
+
+Quit and reopen Claude Desktop. The MCP server will appear in the tools menu (hammer icon). You can verify the connection by asking Claude:
+
+> "Initialize the EnergyPlus model map and show me available models."
+
+### Step 6: Point it at your simulation results
+
+Tell Claude to scan any directory containing EnergyPlus output files (`.epJSON`, `.sql`, `.table.htm`) — this can be your simulation output directory directly, or a separate folder where you've copied files you want to analyze:
+
+> "Initialize the model map with directory `path/to/my/simulation_outputs`"
+
+The server will automatically discover and group files by directory and filename stem.
 
 ## File Structure
 
@@ -60,35 +115,15 @@ Examples of valid model filenames:
 
 All are discovered and grouped correctly regardless of naming pattern.
 
-## Available Data
+## Example Files
 
-### Example Files Location
+The `example-files/` directory contains sample EnergyPlus output files for testing and exploration. See `example-files/about.md` for provenance.
 
-The `example-files` directory contains sample EnergyPlus models. See `example-files/about.md` for the location of the original project files these were copied from.
+Included models:
+- `ASHRAE901_HotelLarge_STD2013_Atlanta` — Large hotel, Atlanta climate
+- `ASHRAE901_HotelLarge_STD2013_Buffalo` — Large hotel, Buffalo climate
 
-### Building Types
-
-- **HotelLarge** - Large hotel building prototype
-- **Warehouse** - Warehouse building prototype
-
-### HVAC Systems
-
-- **gshp** - Ground Source Heat Pump
-- **pkgdx_gas** - Packaged DX with Gas
-- **pkgdx_hp** - Packaged DX Heat Pump
-- **pvav_awhp** - Packaged VAV with Air-to-Water Heat Pump
-- **pvav_blr** - Packaged VAV with Boiler
-- **vav_ac_blr** - VAV with Air-Cooled Chiller and Boiler
-- **vav_ac_blr_doas** - VAV with Air-Cooled Chiller, Boiler, and DOAS
-- **vav_wc_blr** - VAV with Water-Cooled Chiller and Boiler
-- **vrf** - Variable Refrigerant Flow
-- **wshp_gas** - Water Source Heat Pump with Gas
-- **pszvav_gas** - Packaged Single Zone VAV with Gas
-
-### Locations
-
-- **Buffalo** - Cold climate (upstate New York)
-- **Tampa** - Hot climate (Florida)
+Each includes `.epJSON`, `.sql`, and `.table.htm` files along with associated simulation outputs.
 
 ## Available Tools
 
@@ -124,50 +159,43 @@ The `example-files` directory contains sample EnergyPlus models. See `example-fi
 - `execute_query()` - Execute pandas queries on cached data
 - `execute_multiline_query()` - Execute multi-line pandas code on cached data
 
-## Quick Start Guide
+## Usage Examples
 
-### 1. Initialize the System
+Once connected via Claude Desktop, here's a typical workflow using the MCP tools:
+
+### 1. Initialize and discover models
 
 ```python
-# Always start here
-initialize_model_map(directory='eplus_files')
-
-# Discover available models
+initialize_model_map(directory='example-files')
 models = get_available_models()
 ```
 
-### 2. Explore Available Data
+### 2. Explore available data
 
 ```python
-# Get the model_id from get_available_models() first
-models = get_available_models()
-model_id = models[0]['model_id']  # e.g., 'eplus_files/run1/eplusout'
+model_id = models[0]['model_id']
 
 # Find cooling-related tables
-cooling_tables = search_html_tables_by_keyword(
-    id=model_id,
-    keywords=['cooling', 'sizing', 'capacity']
-)
+search_html_tables_by_keyword(id=model_id, keywords=['cooling', 'sizing', 'capacity'])
 
 # Get available timeseries variables
-timeseries_vars = get_sql_available_hourlies(id=model_id)
+get_sql_available_hourlies(id=model_id)
 ```
 
-### 3. Extract and Analyze Data
+### 3. Extract and analyze data
 
 ```python
 # Get a specific HTML table
-sizing_data = get_html_table_by_tuple(
+get_html_table_by_tuple(
     id=model_id,
     query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling')
 )
 
 # Analyze timeseries data with pandas
-energy_analysis = execute_multiline_pandas_on_timeseries(
+execute_multiline_pandas_on_timeseries(
     model_id=model_id,
     rddid=179,
     code='''
-    # Convert energy units and calculate monthly totals
     df['kWh'] = df['Value'] / 3.6e6
     df['month'] = df['dt'].dt.month
     monthly_consumption = df.groupby('month')['kWh'].sum()
@@ -241,39 +269,11 @@ These documents are generated by AI assistants during development iterations. Fu
 
 This keeps documentation organized and distinguishes AI-generated analysis from user-facing documentation.
 
-## Security & Code Quality Status
+## Security & Code Quality
 
-### Recent Improvements (February 2026)
+Security fixes applied in February 2026 include parameterized SQL queries, path traversal prevention, input validation, error disclosure hardening, and sandbox improvements. See `ai-docs/` for full audit reports.
 
-✅ **6 Security Issues Fixed**
-- SQL Injection vulnerabilities (parameterized queries)
-- Path traversal prevention (directory validation)
-- Input validation (RDD ID type/range checking)
-- Error information disclosure (generic error messages)
-- Code execution sandbox hardening (AST-based attribute validation)
-
-✅ **3 Code Quality Improvements**
-- Removed unreachable code
-- Replaced assert with proper exception handling
-- Cleaned up debug comments
-
-**See `ai-docs/` folder for detailed security audit reports.**
-
-## Remaining Security & Code Quality Considerations
-
-This section documents issues that remain for future versions. Many security issues have been addressed (see `ai-docs/` folder for details).
-
-### ✅ Recently Fixed (February 2026)
-
-- ✅ **SQL Injection** - Now using parameterized queries with `?` placeholders
-- ✅ **Path Traversal** - Directory validation prevents `../` and absolute paths outside base directory
-- ✅ **Input Validation** - RDD IDs now type-checked and range-validated
-- ✅ **Error Disclosure** - Generic error messages; full details logged internally only
-- ✅ **Code Execution Sandbox** - AST-based validation prevents dangerous attribute access
-- ✅ **Dead Code** - Removed unreachable returns and debug comments
-- ✅ **Exception Handling** - Replaced assert with proper ValueError exceptions
-
-### Issues for Future Versions
+### Known Issues for Future Versions
 
 1. **Unsafe Pickle Deserialization** (`src/model_data.py`)
    - Model map cached using `pickle` which can execute arbitrary code if tampered with
@@ -296,11 +296,15 @@ This section documents issues that remain for future versions. Many security iss
    - `get_tables()` in `src/model_data.py:123` instantiates wrong class (SqlTimeseries instead of SqlTables)
    - Parameter mismatch in logging decorator (`src/monitor.py`)
 
-### Testing Gaps
+### Testing
 
-- No automated tests present in repository
-- Recommended: Add unit tests for SQL functions, input validation, and data extraction tools
-- Add integration tests for end-to-end workflows
+Tests are in the `tests/` directory. Run with:
+
+```bash
+uv run pytest
+```
+
+See `tests/TESTING.md` for details on test coverage and structure.
 
 ## Support
 
@@ -311,4 +315,3 @@ get_usage_instructions()
 ```
 
 This returns the complete CLAUDE.md documentation file with comprehensive examples and best practices.
-"# eplusout-mcp" 
