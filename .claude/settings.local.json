@@ -20,7 +20,8 @@
       "Bash(xargs:*)",
       "Bash(sed:*)",
       "Bash(uv run:*)",
-      "Bash(uv sync:*)"
+      "Bash(uv sync:*)",
+      "Bash(gh auth:*)"
     ]
   }
 }
