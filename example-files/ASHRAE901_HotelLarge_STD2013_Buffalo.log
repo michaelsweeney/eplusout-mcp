@@ -1,0 +1,12 @@
+E+ runscript:      /qfs/projects/BECP/comstd/Energy_Credits/FY25/elevators/simulation/elevator_fix/proj_task_folder/HotelLarge/sim/../../modules/doe_bldg_tools/bin/runeplus ($Id: runeplus,v 1.57 2020/02/12 01:16:24 d3l143 Exp $)
+Eplus version:     /qfs/projects/BECP/EnergyPlus/EnergyPlusV2410v2/EnergyPlus-24-1-0
+Input file:        ASHRAE901_HotelLarge_STD2013_Buffalo.idf
+Weather file:      /qfs/projects/BECP/comstd/Energy_Credits/FY25/elevators/simulation/elevator_fix/proj_task_folder/HotelLarge/sim/../../tools/epw/USA_NY_Buffalo.Niagara.Intl.AP.725280_TMY3.epw
+Output tag:        ASHRAE901_HotelLarge_STD2013_Buffalo
+Output:            Compressed
+Running on:        node117
+File setup:         0 wallclock secs ( 0.00 usr  0.00 sys +  0.00 cusr  0.00 csys =  0.00 CPU)
+Eplus simulation:  455 wallclock secs ( 0.00 usr  0.00 sys + 447.71 cusr  0.54 csys = 448.25 CPU) @  0.00/s (n=1)
+Post-processing:    0 wallclock secs ( 0.00 usr  0.00 sys +  0.40 cusr  0.05 csys =  0.45 CPU) @  2.22/s (n=1)
+Final I/O:          1 wallclock secs ( 0.03 usr  0.04 sys +  0.17 cusr  0.05 csys =  0.29 CPU) @  3.45/s (n=1)
+Total:             457 wallclock secs ( 0.13 usr  0.05 sys + 448.42 cusr  0.64 csys = 449.24 CPU)

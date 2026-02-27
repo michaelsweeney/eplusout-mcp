@@ -1,0 +1,470 @@
+Program Version,EnergyPlus, Version 24.1.0-9d7789a3ac, YMD=2025.02.03 12:28,
+   ************* Beginning Zone Sizing Calculations
+   ** Warning ** CheckConvexity: Zone="KITCHEN_FLR_6", Surface="KITCHEN_FLR_6_CEILING" is non-convex.
+   **   ~~~   ** ...vertex 2 to vertex 3 to vertex 4
+   **   ~~~   ** ...vertex 2=[81.99,12.50,19.20]
+   **   ~~~   ** ...vertex 3=[81.99,5.79,19.20]
+   **   ~~~   ** ...vertex 4=[86.56,5.79,19.20]
+   ** Warning ** CheckConvexity: Zone="CORRIDOR_FLR_6", Surface="CORRIDOR_FLR_6_CEILING_1" is non-convex.
+   **   ~~~   ** ...vertex 4 to vertex 5 to vertex 6
+   **   ~~~   ** ...vertex 4=[42.37,22.86,19.20]
+   **   ~~~   ** ...vertex 5=[42.37,12.50,19.20]
+   **   ~~~   ** ...vertex 6=[10.36,12.50,19.20]
+   ** Warning ** CheckConvexity: Zone="CORRIDOR_FLR_6", Surface="CORRIDOR_FLR_6_CEILING_2" is non-convex.
+   **   ~~~   ** ...vertex 2 to vertex 3 to vertex 4
+   **   ~~~   ** ...vertex 2=[64.92,9.45,19.20]
+   **   ~~~   ** ...vertex 3=[64.92,5.79,19.20]
+   **   ~~~   ** ...vertex 4=[81.99,5.79,19.20]
+   ** Warning ** CheckUsedConstructions: There are 22 nominally unused constructions in input.
+   **   ~~~   ** Each Unused construction is shown.
+   ************* Construction=AIR_WALL
+   ************* Construction=DROPCEILING
+   ************* Construction=OPAQUEDOOR
+   ************* Construction=ATTICROOFDECK
+   ************* Construction=EXT_SLAB_8IN_WITH_CARPET
+   ************* Construction=EXT_SLAB_8IN
+   ************* Construction=EXT_SLAB_6IN_WITH_CARPET
+   ************* Construction=EXT_SLAB_6IN
+   ************* Construction=INT_SLAB_FLOOR
+   ************* Construction=INT_SLAB_CEILING
+   ************* Construction=BASEMENT_WALL
+   ************* Construction=INT_WOOD_FLOOR
+   ************* Construction=EXT_SOFFIT_FLOOR
+   ************* Construction=SEMIHEATED_ROOF
+   ************* Construction=RES_EXT_WALL_GRD
+   ************* Construction=SEMIHEATED_EXT_WALL_GRD
+   ************* Construction=SEMIHEATED_EXT_WALL_MID
+   ************* Construction=SEMIHEATED_EXT_WALL_TOP
+   ************* Construction=RES_FLOOR
+   ************* Construction=SEMIHEATED_FLOOR
+   ************* Construction=RES_FLOOR_CEILING
+   ************* Construction=SEMIHEATED_FLOOR_CEILING
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="LOBBY_FLR_1_DAYLCTRL", only 0.140 of the zone or space is controlled.
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="CAFE_FLR_1_DAYLCTRL", only 0.780 of the zone or space is controlled.
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="DINING_FLR_6_DAYLCTRL", only 0.400 of the zone or space is controlled.
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="BANQUET_FLR_6_DAYLCTRL", only 0.400 of the zone or space is controlled.
+   ************* Beginning System Sizing Calculations
+   ** Warning ** Fan:ZoneExhaust="LOBBY_FLR_1 EXHAUST FAN" has specified 0.0 max air flow rate. It will not be used in the simulation.
+   ** Warning ** GetDXCoils: Coil:Heating:DX:MultiSpeed="PSZ_KITCHEN HEATING COIL" curve values
+   **   ~~~   ** ... Defrost Energy Input Ratio Function of Temperature Curve Name = HPACDEFROSTCAPFT output is not equal to 1.0 (+ or - 10%) at rated conditions.
+   **   ~~~   ** ... Curve output at rated conditions = 0.813
+   ** Warning ** AirLoopHVAC:UnitarySystem = PSZ_KITCHEN_UNITARY_PACKAGE_DX
+   **   ~~~   ** Invalid entry for Minimum Supply Air Temperature = 12.8000
+   **   ~~~   ** The minimum supply air temperature will be limited to 7.5C and the simulation continues.
+   ************* Beginning Plant Sizing Calculations
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "BASEMENT VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "RETAIL_1_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.15628
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "RETAIL_2_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.23246
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "RETAIL_2_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 0.61990 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "MECH_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.61514
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "MECH_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "STORAGE_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "LAUNDRY_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 6.95953E-002
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CAFE_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.10167
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "LOBBY_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.21036
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "LOBBY_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 0.56095 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_3 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.77931
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_3 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "BANQUET_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.11061
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "DINING_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.10558
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.39824
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="BASEMENT".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA BASEMENT".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="RETAIL_1_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA RETAIL_1_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="RETAIL_2_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA RETAIL_2_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="MECH_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA MECH_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="STORAGE_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA STORAGE_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="LAUNDRY_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA LAUNDRY_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="CAFE_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA CAFE_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="LOBBY_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA LOBBY_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="CORRIDOR_FLR_3".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA CORRIDOR_FLR_3".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="CORRIDOR_FLR_6".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA CORRIDOR_FLR_6".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="BANQUET_FLR_6".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA BANQUET_FLR_6".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="DINING_FLR_6".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA DINING_FLR_6".
+   ** Warning ** In calculating the design coil UA for Coil:Cooling:Water VAV WITH REHEAT COOLING COIL
+   **   ~~~   ** the coil bypass factor is unrealistically large;
+   **   ~~~   ** The initial design conditions are: Tair,in = 29.6932
+   **   ~~~   **                                    Wair,in = 1.229305E-002
+   **   ~~~   **                                    Twater,in = 6.7000
+   **   ~~~   **                                    Tair,out = 10.9220
+   **   ~~~   **                                    Wair,out = 8.500000E-003
+   ************* SizeDXCoil: Potential issue with equipment sizing for Coil:Cooling:DX:MultiSpeed PSZ_KITCHEN HP COOLING COIL
+   **   ~~~   ** User-Specified Speed 1 Rated Air Flow Rate [m3/s] = 1.55652
+   **   ~~~   ** differs from Design Size Speed 1 Rated Air Flow Rate [m3/s] = 1.16739
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeUnitarySystem: Potential issue with equipment sizing for AirLoopHVAC:UnitarySystem PSZ_KITCHEN_UNITARY_PACKAGE_DX
+   **   ~~~   ** User-Specified Supplemental Heating Coil Nominal Capacity [W] = 53868.14821
+   **   ~~~   ** differs from Design Size Supplemental Heating Coil Nominal Capacity [W] = 36091.65930
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range at speed 1.
+   **   ~~~   **  During Warmup, Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB, at Simulation time=01/21 00:00 - 00:10
+   **   ~~~   ** Expected range for VolumeFlowPerRatedTotalCapacity=[2.684E-005--8.056E-005] Current value is 8.610E-005 m3/s/W
+   **   ~~~   ** Possible causes include inconsistent air flow rates in system components or
+   **   ~~~   ** inconsistent supply air fan operation modes in coil and unitary system objects.
+   ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range at speed 1.
+   **   ~~~   **  During Warmup, Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB, at Simulation time=01/21 00:00 - 00:10
+   **   ~~~   ** Expected range for VolumeFlowPerRatedTotalCapacity=[2.684E-005--8.056E-005] Current value is 8.610E-005 m3/s/W
+   **   ~~~   ** Possible causes include inconsistent air flow rates in system components or
+   **   ~~~   ** inconsistent supply air fan operation modes in coil and unitary system objects.
+   ** Warning ** Chiller:Electric:EIR = COOLSYS1 CHILLER1:  Integrated Part Load Value (IPLV) calculated is not at the AHRI test condition.
+   **   ~~~   **  Check limits in Cooling Capacity Function of Temperature Curve, Curve Type = Curve:Biquadratic, Curve Name = ASHRAE901_APPJ_AIR_B_GT528KW_2.96COP_4.1IPLV.SI_CAP-F-T
+   **   ~~~   **  Check limits in EIR Function of Temperature Curve, Curve Type = Curve:Biquadratic, Curve Name = ASHRAE901_APPJ_AIR_B_GT528KW_2.96COP_4.1IPLV.SI_EIR-F-T
+   ** Warning ** Coil:Cooling:DX:MultiSpeed "PSZ_KITCHEN HP COOLING COIL" - Air volume flow rate per watt of rated total cooling capacity is out of range at speed 1.
+   **   ~~~   **  During Warmup, Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN CLG .4% CONDNS DB=>MWB, at Simulation time=07/21 00:00 - 00:10
+   **   ~~~   ** Expected range for VolumeFlowPerRatedTotalCapacity=[2.684E-005--6.713E-005] Current value is 8.560E-005 m3/s/W
+   **   ~~~   ** Possible causes include inconsistent air flow rates in system components or
+   **   ~~~   ** inconsistent supply air fan operation modes in coil and unitary system objects.
+   ************* Testing Individual Branch Integrity
+   ************* All Branches passed integrity testing
+   ************* Testing Individual Supply Air Path Integrity
+   ************* All Supply Air Paths passed integrity testing
+   ************* Testing Individual Return Air Path Integrity
+   ************* All Return Air Paths passed integrity testing
+   ************* No node connection errors were found.
+   ************* Beginning Simulation
+   ** Warning ** CalcOAController: Minimum OA fraction > Mechanical Ventilation Controller request for Controller:OutdoorAir=VAV WITH REHEAT_OA_CONTROLLER, Min OA fraction is used.
+   **   ~~~   ** This may be overriding desired ventilation controls. Check inputs for Minimum Outdoor Air Flow Rate, Minimum Outdoor Air Schedule Name and Controller:MechanicalVentilation
+   **   ~~~   ** Minimum OA fraction = 0.5477, Mech Vent OA fraction = 0.3286
+   **   ~~~   **  Environment=RUNPERIOD 1, at Simulation time=01/01 00:00 - 00:10
+   ** Warning ** ElectricEIRChillerModel - CHILLER:ELECTRIC:EIR "COOLSYS1 CHILLER1" - Air Cooled Condenser Inlet Temperature below 0C.
+   **   ~~~   ** ... Outdoor Dry-bulb Condition =  -2.70 C. Occurrence info = RUNPERIOD 1, 01/05 09:04 - 09:06
+   ** Warning ** SimHVAC: Maximum iterations (20) exceeded for all HVAC loops, at RUNPERIOD 1, 05/13 18:20 - 18:30
+   **   ~~~   ** The solution for one or more of the Air Loop HVAC systems did not appear to converge
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for mass flow rate
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface mass flow rate check value iteration history trace: 0.250718,0.218416,1.606901E-002,0.173416,0.228264,0.177726,0.171247,0.250742,0.218206,1.612124E-002,
+   **   ~~~   ** Supply-to-demand interface deck 1 mass flow rate check value iteration history trace: 0.000000,0.000000,0.000000,0.000000,1.776357E-015,1.776357E-015,1.776357E-015,0.000000,0.000000,0.000000,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for temperature
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface temperature check value iteration history trace: 3.650258E-002,3.226371E-002,2.427084E-003,2.575115E-002,3.340275E-002,2.663232E-002,2.564632E-002,3.650597E-002,3.223464E-002,2.434861E-003,
+   **   ~~~   ** Supply-to-demand interface deck 1 temperature check value iteration history trace: 0.746200,0.829579,7.247477E-002,0.688840,0.705432,0.706951,0.679444,0.746252,0.829621,7.269598E-002,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for energy
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface energy check value iteration history trace: 6035.469030,5264.051176,387.389747,4180.701630,5495.651335,4284.597004,4128.398648,6036.052794,5259.015320,388.648961,
+   **   ~~~   ** Supply-to-demand interface deck 1 energy check value iteration history trace: -10161.987801,11115.406137,-972.248725,-9360.825763,9424.495568,-9571.036502,9081.720795,-10162.724506,11116.165449,-975.237413,
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating mass flow rate across iterations with a repeated value of 1.520062
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE mass flow rate [kg/s] iteration history trace (most recent first): 1.520062,1.520062,1.520062,1.581508,1.520062,1.581518,1.571007,1.581518,1.571239,1.571007,
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 6.394717E-003
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 6.394717E-003,6.386156E-003,6.394718E-003,6.389844E-003,6.394718E-003,6.389863E-003,6.002273E-003,6.389863E-003,6.002273E-003,6.393544E-003,
+   ** Warning ** SimHVAC: Maximum iterations (20) exceeded for all HVAC loops, at RUNPERIOD 1, 05/16 19:25 - 19:30
+   **   ~~~   ** The solution for one or more of the Air Loop HVAC systems did not appear to converge
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for mass flow rate
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface mass flow rate check value iteration history trace: 0.500069,0.530674,4.749923E-003,2.585518E-002,0.500069,0.530674,4.749923E-003,2.585518E-002,0.500069,0.530674,
+   **   ~~~   ** Supply-to-demand interface deck 1 mass flow rate check value iteration history trace: 1.776357E-015,0.000000,0.000000,0.000000,1.776357E-015,0.000000,0.000000,0.000000,1.776357E-015,0.000000,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for humidity ratio
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface humidity ratio check value iteration history trace: 3.712028E-006,3.949158E-006,3.688950E-008,2.002405E-007,3.712028E-006,3.949158E-006,3.688950E-008,2.002405E-007,3.712028E-006,3.949158E-006,
+   **   ~~~   ** Supply-to-demand interface deck 1 humidity ratio check value iteration history trace: 1.961792E-004,2.812986E-004,3.436297E-006,8.855568E-005,1.961792E-004,2.812986E-004,3.436297E-006,8.855568E-005,1.961792E-004,2.812986E-004,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for temperature
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface temperature check value iteration history trace: 3.896693E-002,4.145696E-002,3.872837E-004,2.102747E-003,3.896693E-002,4.145696E-002,3.872837E-004,2.102747E-003,3.896693E-002,4.145696E-002,
+   **   ~~~   ** Supply-to-demand interface deck 1 temperature check value iteration history trace: 0.776865,0.827471,8.054143E-003,4.255187E-002,0.776865,0.827471,8.054143E-003,4.255187E-002,0.776865,0.827471,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for energy
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface energy check value iteration history trace: 12059.175538,12797.218244,114.544488,623.498218,12059.175538,12797.218244,114.544488,623.498218,12059.175538,12797.218244,
+   **   ~~~   ** Supply-to-demand interface deck 1 energy check value iteration history trace: -11604.618147,11919.313045,-116.054364,-614.247107,-11604.618147,11919.313045,-116.054364,-614.247107,-11604.618147,11919.313045,
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating mass flow rate across iterations with a repeated value of 3.282011
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE mass flow rate [kg/s] iteration history trace (most recent first): 3.282011,3.266934,3.282011,3.266934,3.282011,3.266934,3.282011,3.266934,3.282011,3.266934,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE shows oscillating mass flow rate across iterations with a repeated value of 1.604542
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE mass flow rate [kg/s] iteration history trace (most recent first): 1.604542,1.597168,1.604542,1.597168,1.604542,1.597168,1.604542,1.597168,1.604542,1.597168,
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating mass flow rate across iterations with a repeated value of 1.774555
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE mass flow rate [kg/s] iteration history trace (most recent first): 1.774555,1.766401,1.774555,1.766401,1.774555,1.766401,1.774555,1.766401,1.774555,1.766401,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 8.759242E-003
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,8.759242E-003,8.844362E-003,
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.847098
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,12.847098,12.796492,
+   ** Warning ** SimHVAC: Maximum iterations (20) exceeded for all HVAC loops, at RUNPERIOD 1, 05/17 20:20 - 20:30
+   **   ~~~   ** The solution for one or more of the Air Loop HVAC systems did not appear to converge
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for mass flow rate
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface mass flow rate check value iteration history trace: 5.002578E-002,5.002574E-002,5.002577E-002,5.002581E-002,5.002578E-002,5.002574E-002,5.002577E-002,5.002581E-002,5.002578E-002,5.002574E-002,
+   **   ~~~   ** Supply-to-demand interface deck 1 mass flow rate check value iteration history trace: 0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,1.776357E-015,0.000000,0.000000,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for temperature
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface temperature check value iteration history trace: 3.538879E-003,3.538876E-003,3.538878E-003,3.538881E-003,3.538879E-003,3.538876E-003,3.538878E-003,3.538881E-003,3.538879E-003,3.538876E-003,
+   **   ~~~   ** Supply-to-demand interface deck 1 temperature check value iteration history trace: 8.299863E-002,8.299856E-002,8.299861E-002,8.299868E-002,8.299863E-002,8.299856E-002,8.299861E-002,8.299868E-002,8.299863E-002,8.299856E-002,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for energy
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface energy check value iteration history trace: 1205.545101,1205.544151,1205.544896,1205.545846,1205.545101,1205.544151,1205.544896,1205.545846,1205.545101,1205.544151,
+   **   ~~~   ** Supply-to-demand interface deck 1 energy check value iteration history trace: -1209.854917,1205.681787,-1209.854706,1205.683471,-1209.854917,1205.681787,-1209.854706,1205.683471,-1209.854917,1205.681787,
+   ** Warning ** SimHVAC: Maximum iterations (20) exceeded for all HVAC loops, at RUNPERIOD 1, 05/19 20:10 - 20:20
+   **   ~~~   ** The solution for one or more of the Air Loop HVAC systems did not appear to converge
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for mass flow rate
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface mass flow rate check value iteration history trace: 2.607553E-002,2.607557E-002,2.607563E-002,2.607559E-002,2.607553E-002,2.607557E-002,2.607563E-002,2.607559E-002,2.607553E-002,2.607557E-002,
+   **   ~~~   ** Supply-to-demand interface deck 1 mass flow rate check value iteration history trace: 1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,1.776357E-015,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for temperature
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface temperature check value iteration history trace: 2.335708E-003,2.335712E-003,2.335718E-003,2.335714E-003,2.335708E-003,2.335712E-003,2.335718E-003,2.335714E-003,2.335708E-003,2.335712E-003,
+   **   ~~~   ** Supply-to-demand interface deck 1 temperature check value iteration history trace: 4.696832E-002,4.696840E-002,4.696851E-002,4.696843E-002,4.696832E-002,4.696840E-002,4.696851E-002,4.696843E-002,4.696832E-002,4.696840E-002,
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for energy
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface energy check value iteration history trace: 628.770625,628.771616,628.773114,628.772123,628.770625,628.771616,628.773114,628.772123,628.770625,628.771616,
+   **   ~~~   ** Supply-to-demand interface deck 1 energy check value iteration history trace: -658.709342,657.479708,-658.711930,657.480241,-658.709342,657.479708,-658.711930,657.480241,-658.709342,657.479708,
+   ** Warning ** SimHVAC: Maximum iterations (20) exceeded for all HVAC loops, at RUNPERIOD 1, 12/02 19:24 - 19:26
+   **   ~~~   ** The solution for one or more of the Air Loop HVAC systems did not appear to converge
+   **   ~~~   ** Air System Named = VAV WITH REHEAT did not converge for energy
+   **   ~~~   ** Check values should be zero. Most Recent values listed first.
+   **   ~~~   ** Demand-to-Supply interface energy check value iteration history trace: 16.632882,83.224569,416.232571,516.090021,16.632882,83.224569,416.232571,516.090021,16.632882,83.224569,
+   **   ~~~   ** Supply-to-demand interface deck 1 energy check value iteration history trace: -42.489474,-212.292488,-1053.785248,1306.777383,-42.489474,-212.292488,-1053.785248,1306.777383,-42.489474,-212.292488,
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.699966
+   **   ~~~   ** Node named BASEMENT VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 18.960341
+   **   ~~~   ** Node named RETAIL_1_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 18.960341,18.960334,18.960341,18.960334,18.960341,18.960334,18.960341,18.960334,18.960341,18.960334,
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 13.483706
+   **   ~~~   ** Node named RETAIL_2_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 13.483706,13.483701,13.483706,13.483701,13.483706,13.483701,13.483706,13.483701,13.483706,13.483701,
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named MECH_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 22.506548
+   **   ~~~   ** Node named STORAGE_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 22.506548,22.506545,22.506548,22.506545,22.506548,22.506545,22.506548,22.506545,22.506548,22.506545,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating mass flow rate across iterations with a repeated value of 2.412396
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE mass flow rate [kg/s] iteration history trace (most recent first): 2.412396,2.416538,2.412396,2.416538,2.412396,2.416538,2.412396,2.416538,2.412396,2.416538,
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.699966
+   **   ~~~   ** Node named LAUNDRY_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 14.282623
+   **   ~~~   ** Node named CAFE_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 14.282623,14.282604,14.282623,14.282604,14.282623,14.282604,14.282623,14.282604,14.282623,14.282604,
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.699966
+   **   ~~~   ** Node named LOBBY_FLR_1 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 17.659728
+   **   ~~~   ** Node named CORRIDOR_FLR_3 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 17.659728,17.659721,17.659728,17.659721,17.659728,17.659721,17.659728,17.659721,17.659728,17.659721,
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.699966
+   **   ~~~   ** Node named BANQUET_FLR_6 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 12.699966
+   **   ~~~   ** Node named DINING_FLR_6 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,12.699966,12.719333,
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE shows oscillating humidity ratio across iterations with a repeated value of 2.043012E-003
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE humidity ratio [kg-water/kg-dryair] iteration history trace (most recent first): 2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,2.043012E-003,2.043449E-003,
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE shows oscillating temperatures across iterations with a repeated value of 20.355362
+   **   ~~~   ** Node named CORRIDOR_FLR_6 VAV BOX OUTLET NODE temperature [C] iteration history trace (most recent first): 20.355362,20.355357,20.355362,20.355357,20.355362,20.355357,20.355362,20.355357,20.355362,20.355357,
+   ************* Simulation Error Summary *************
+   ************* There are 46 unused schedules in input.
+   ************* Use Output:Diagnostics,DisplayUnusedSchedules; to see them.
+   *************
+   ************* ===== Recurring Error Summary =====
+   ************* The following recurring error messages occurred.
+   *************
+   *************  ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range at speed 1 error continues...
+   *************  **   ~~~   **   This error occurred 193 total times;
+   *************  **   ~~~   **   during Warmup 28 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.000088  Min=0.000084
+   *************
+   *************  ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range error continues at speed 1...
+   *************  **   ~~~   **   This error occurred 965 total times;
+   *************  **   ~~~   **   during Warmup 140 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.000088  Min=0.000084
+   *************
+   *************  ** Warning ** Coil:Cooling:DX:MultiSpeed "PSZ_KITCHEN HP COOLING COIL" - Air volume flow rate per watt of rated total cooling capacity is out of range at speed 1 error continues...
+   *************  **   ~~~   **   This error occurred 1417137 total times;
+   *************  **   ~~~   **   during Warmup 91 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.000087  Min=0.000080
+   *************
+   *************  ** Warning ** Controller:OutdoorAir="VAV WITH REHEAT_OA_CONTROLLER": Min OA fraction > Mechanical ventilation OA fraction, continues...
+   *************  **   ~~~   **   This error occurred 1453138 total times;
+   *************  **   ~~~   **   during Warmup 0 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.547711  Min=0.547711
+   *************
+   *************  ** Warning ** ElectricEIRChillerModel - CHILLER:ELECTRIC:EIR "COOLSYS1 CHILLER1" - Air Cooled Condenser Inlet Temperature below 0C error continues.
+   *************  **   ~~~   **   This error occurred 286 total times;
+   *************  **   ~~~   **   during Warmup 0 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=-0.033333 [C]  Min=-6.833333 [C]
+   *************
+   *************
+   ************* ===== Final Error Summary =====
+   ************* The following error categories occurred.  Consider correcting or noting.
+   ************* Nominally Unused Constructions
+   ************* ..The nominally unused constructions warning is provided to alert you to potential conditions that can cause
+   ************* ..extra time during simulation. Each construction is calculated by the algorithm indicated in the HeatBalanceAlgorithm
+   ************* ..object. You may remove the constructions indicated (when you use the DisplayExtraWarnings option).
+   *************
+   ************* EnergyPlus Warmup Error Summary. During Warmup: 0 Warning; 0 Severe Errors.
+   ************* EnergyPlus Sizing Error Summary. During Sizing: 11 Warning; 0 Severe Errors.
+   ************* EnergyPlus Completed Successfully-- 2871751 Warning; 0 Severe Errors; Elapsed Time=00hr 03min 22.16sec

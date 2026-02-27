@@ -1,0 +1,277 @@
+Program Version,EnergyPlus, Version 24.1.0-9d7789a3ac, YMD=2025.02.03 12:28,
+   ************* Beginning Zone Sizing Calculations
+   ** Warning ** CheckConvexity: Zone="KITCHEN_FLR_6", Surface="KITCHEN_FLR_6_CEILING" is non-convex.
+   **   ~~~   ** ...vertex 2 to vertex 3 to vertex 4
+   **   ~~~   ** ...vertex 2=[81.99,12.50,19.20]
+   **   ~~~   ** ...vertex 3=[81.99,5.79,19.20]
+   **   ~~~   ** ...vertex 4=[86.56,5.79,19.20]
+   ** Warning ** CheckConvexity: Zone="CORRIDOR_FLR_6", Surface="CORRIDOR_FLR_6_CEILING_1" is non-convex.
+   **   ~~~   ** ...vertex 4 to vertex 5 to vertex 6
+   **   ~~~   ** ...vertex 4=[42.37,22.86,19.20]
+   **   ~~~   ** ...vertex 5=[42.37,12.50,19.20]
+   **   ~~~   ** ...vertex 6=[10.36,12.50,19.20]
+   ** Warning ** CheckConvexity: Zone="CORRIDOR_FLR_6", Surface="CORRIDOR_FLR_6_CEILING_2" is non-convex.
+   **   ~~~   ** ...vertex 2 to vertex 3 to vertex 4
+   **   ~~~   ** ...vertex 2=[64.92,9.45,19.20]
+   **   ~~~   ** ...vertex 3=[64.92,5.79,19.20]
+   **   ~~~   ** ...vertex 4=[81.99,5.79,19.20]
+   ** Warning ** CheckUsedConstructions: There are 22 nominally unused constructions in input.
+   **   ~~~   ** Each Unused construction is shown.
+   ************* Construction=AIR_WALL
+   ************* Construction=DROPCEILING
+   ************* Construction=OPAQUEDOOR
+   ************* Construction=ATTICROOFDECK
+   ************* Construction=EXT_SLAB_8IN_WITH_CARPET
+   ************* Construction=EXT_SLAB_8IN
+   ************* Construction=EXT_SLAB_6IN_WITH_CARPET
+   ************* Construction=EXT_SLAB_6IN
+   ************* Construction=INT_SLAB_FLOOR
+   ************* Construction=INT_SLAB_CEILING
+   ************* Construction=BASEMENT_WALL
+   ************* Construction=INT_WOOD_FLOOR
+   ************* Construction=EXT_SOFFIT_FLOOR
+   ************* Construction=SEMIHEATED_ROOF
+   ************* Construction=RES_EXT_WALL_GRD
+   ************* Construction=SEMIHEATED_EXT_WALL_GRD
+   ************* Construction=SEMIHEATED_EXT_WALL_MID
+   ************* Construction=SEMIHEATED_EXT_WALL_TOP
+   ************* Construction=RES_FLOOR
+   ************* Construction=SEMIHEATED_FLOOR
+   ************* Construction=RES_FLOOR_CEILING
+   ************* Construction=SEMIHEATED_FLOOR_CEILING
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="LOBBY_FLR_1_DAYLCTRL", only 0.140 of the zone or space is controlled.
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="CAFE_FLR_1_DAYLCTRL", only 0.780 of the zone or space is controlled.
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="DINING_FLR_6_DAYLCTRL", only 0.400 of the zone or space is controlled.
+   ** Warning ** GetDaylightingControls: Fraction of zone or space controlled by the Daylighting reference points is < 1.0.
+   **   ~~~   ** ..discovered in Daylighting:Controls="BANQUET_FLR_6_DAYLCTRL", only 0.400 of the zone or space is controlled.
+   ************* Beginning System Sizing Calculations
+   ** Warning ** Fan:ZoneExhaust="LOBBY_FLR_1 EXHAUST FAN" has specified 0.0 max air flow rate. It will not be used in the simulation.
+   ** Warning ** GetDXCoils: Coil:Heating:DX:MultiSpeed="PSZ_KITCHEN HEATING COIL" curve values
+   **   ~~~   ** ... Defrost Energy Input Ratio Function of Temperature Curve Name = HPACDEFROSTCAPFT output is not equal to 1.0 (+ or - 10%) at rated conditions.
+   **   ~~~   ** ... Curve output at rated conditions = 0.813
+   ** Warning ** AirLoopHVAC:UnitarySystem = PSZ_KITCHEN_UNITARY_PACKAGE_DX
+   **   ~~~   ** Invalid entry for Minimum Supply Air Temperature = 12.8000
+   **   ~~~   ** The minimum supply air temperature will be limited to 7.5C and the simulation continues.
+   ************* Beginning Plant Sizing Calculations
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "BASEMENT VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "RETAIL_1_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.15628
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "RETAIL_2_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.23246
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "RETAIL_2_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 0.61990 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "MECH_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.61514
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "MECH_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "STORAGE_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "LAUNDRY_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 6.95953E-002
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CAFE_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.10167
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "LOBBY_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.21036
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "LOBBY_FLR_1 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 0.56095 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_3 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.77931
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_3 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "BANQUET_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.11061
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "DINING_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.10558
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Minimum Cooling Air Flow Fraction of 0.54700
+   **   ~~~   ** differs from Design Size Minimum Cooling Air Flow Fraction of 0.39824
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ************* SizeHVACSingleDuct: Potential issue with equipment sizing for AirTerminal:SingleDuct:VAV:Reheat = "CORRIDOR_FLR_6 VAV BOX COMPONENT".
+   **   ~~~   ** User-Specified Maximum Flow Fraction during Reheat of 0.50000 []
+   **   ~~~   ** differs from Design Size Maximum Flow Fraction during Reheat of 1.00000 []
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="BASEMENT".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA BASEMENT".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="RETAIL_1_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA RETAIL_1_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="RETAIL_2_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA RETAIL_2_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="MECH_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA MECH_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="STORAGE_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA STORAGE_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="LAUNDRY_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA LAUNDRY_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="CAFE_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA CAFE_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="LOBBY_FLR_1".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA LOBBY_FLR_1".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="CORRIDOR_FLR_3".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA CORRIDOR_FLR_3".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="CORRIDOR_FLR_6".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA CORRIDOR_FLR_6".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="BANQUET_FLR_6".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA BANQUET_FLR_6".
+   ** Warning ** Controller:MechanicalVentilation="VAV WITH REHEAT_DCV", Zone OA/person rate
+   **   ~~~   ** For Zone="DINING_FLR_6".
+   **   ~~~   ** Zone outside air per person rate not set in Design Specification Outdoor Air Object="SZ DSOA DINING_FLR_6".
+   ** Warning ** In calculating the design coil UA for Coil:Cooling:Water VAV WITH REHEAT COOLING COIL
+   **   ~~~   ** the coil bypass factor is unrealistically large;
+   **   ~~~   ** The initial design conditions are: Tair,in = 29.6932
+   **   ~~~   **                                    Wair,in = 1.229305E-002
+   **   ~~~   **                                    Twater,in = 6.7000
+   **   ~~~   **                                    Tair,out = 10.9057
+   **   ~~~   **                                    Wair,out = 8.500000E-003
+   ** Warning ** SizeDXCoil Coil:Cooling:DX:MultiSpeed PSZ_KITCHEN HP COOLING COIL
+   **   ~~~   ** ...Speed 2 Gross Rated Total Cooling Capacity [W] will be limited by the minimum rated volume flow per rated total capacity ratio.
+   **   ~~~   ** ...DX coil volume flow rate (m3/s ) = 0.000000
+   **   ~~~   ** ...Requested capacity (W ) = 56218.264
+   **   ~~~   ** ...Requested flow/capacity ratio (m3/s/W ) = 0.000
+   **   ~~~   ** ...Minimum flow/capacity ratio (m3/s/W ) = 4.027E-005
+   **   ~~~   ** ...Adjusted capacity ( W ) = 0.000
+   ** Warning ** SizeDXCoil Coil:Cooling:DX:MultiSpeed PSZ_KITCHEN HP COOLING COIL
+   **   ~~~   ** ...Speed 1 Gross Rated Total Cooling Capacity [W] will be limited by the minimum rated volume flow per rated total capacity ratio.
+   **   ~~~   ** ...DX coil volume flow rate (m3/s ) = 0.000000
+   **   ~~~   ** ...Requested capacity (W ) = 28109.132
+   **   ~~~   ** ...Requested flow/capacity ratio (m3/s/W ) = 0.000
+   **   ~~~   ** ...Minimum flow/capacity ratio (m3/s/W ) = 4.027E-005
+   **   ~~~   ** ...Adjusted capacity ( W ) = 0.000
+   ************* SizeUnitarySystem: Potential issue with equipment sizing for AirLoopHVAC:UnitarySystem PSZ_KITCHEN_UNITARY_PACKAGE_DX
+   **   ~~~   ** User-Specified Supplemental Heating Coil Nominal Capacity [W] = 56218.26499
+   **   ~~~   ** differs from Design Size Supplemental Heating Coil Nominal Capacity [W] = 37666.23755
+   **   ~~~   ** This may, or may not, indicate mismatched component sizes.
+   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.
+   ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range at speed 1.
+   **   ~~~   **  During Warmup, Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB, at Simulation time=01/21 00:00 - 00:10
+   **   ~~~   ** Expected range for VolumeFlowPerRatedTotalCapacity=[2.684E-005--8.056E-005] Current value is 8.279E-005 m3/s/W
+   **   ~~~   ** Possible causes include inconsistent air flow rates in system components or
+   **   ~~~   ** inconsistent supply air fan operation modes in coil and unitary system objects.
+   ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range at speed 1.
+   **   ~~~   **  During Warmup, Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB, at Simulation time=01/21 00:00 - 00:10
+   **   ~~~   ** Expected range for VolumeFlowPerRatedTotalCapacity=[2.684E-005--8.056E-005] Current value is 8.279E-005 m3/s/W
+   **   ~~~   ** Possible causes include inconsistent air flow rates in system components or
+   **   ~~~   ** inconsistent supply air fan operation modes in coil and unitary system objects.
+   ** Warning ** Coil:Cooling:DX:MultiSpeed "PSZ_KITCHEN HP COOLING COIL" - Air volume flow rate per watt of rated total cooling capacity is out of range at speed 1.
+   **   ~~~   **  During Warmup, Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN CLG .4% CONDNS DB=>MWB, at Simulation time=07/21 00:00 - 00:10
+   **   ~~~   ** Expected range for VolumeFlowPerRatedTotalCapacity=[2.684E-005--6.713E-005] Current value is 8.589E-005 m3/s/W
+   **   ~~~   ** Possible causes include inconsistent air flow rates in system components or
+   **   ~~~   ** inconsistent supply air fan operation modes in coil and unitary system objects.
+   ************* Testing Individual Branch Integrity
+   ************* All Branches passed integrity testing
+   ************* Testing Individual Supply Air Path Integrity
+   ************* All Supply Air Paths passed integrity testing
+   ************* Testing Individual Return Air Path Integrity
+   ************* All Return Air Paths passed integrity testing
+   ************* No node connection errors were found.
+   ************* Beginning Simulation
+   ** Warning ** CalcOAController: Minimum OA fraction > Mechanical Ventilation Controller request for Controller:OutdoorAir=VAV WITH REHEAT_OA_CONTROLLER, Min OA fraction is used.
+   **   ~~~   ** This may be overriding desired ventilation controls. Check inputs for Minimum Outdoor Air Flow Rate, Minimum Outdoor Air Schedule Name and Controller:MechanicalVentilation
+   **   ~~~   ** Minimum OA fraction = 0.5477, Mech Vent OA fraction = 0.3286
+   **   ~~~   **  Environment=ATLANTA-HARTSFIELD.JACKSON.INTL.AP_GA_USA ANN HTG 99.6% CONDNS DB, at Simulation time=01/21 00:00 - 00:10
+   ** Warning ** Output:Table:Monthly requested with SimulationControl Run Simulation for Weather File Run Periods set to No so Output:Table:Monthly will not be generated
+   ************* Simulation Error Summary *************
+   ************* There are 9 unused objects in input.
+   ************* Use Output:Diagnostics,DisplayUnusedObjects; to see them.
+   ************* There are 46 unused schedules in input.
+   ************* Use Output:Diagnostics,DisplayUnusedSchedules; to see them.
+   *************
+   ************* ===== Recurring Error Summary =====
+   ************* The following recurring error messages occurred.
+   *************
+   *************  ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range at speed 1 error continues...
+   *************  **   ~~~   **   This error occurred 5169 total times;
+   *************  **   ~~~   **   during Warmup 4449 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.000084  Min=0.000083
+   *************
+   *************  ** Warning ** Coil:Heating:DX:MultiSpeed "PSZ_KITCHEN HEATING COIL" - Air volume flow rate per watt of rated total heating capacity is out of range error continues at speed 1...
+   *************  **   ~~~   **   This error occurred 25845 total times;
+   *************  **   ~~~   **   during Warmup 22245 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.000084  Min=0.000083
+   *************
+   *************  ** Warning ** Coil:Cooling:DX:MultiSpeed "PSZ_KITCHEN HP COOLING COIL" - Air volume flow rate per watt of rated total cooling capacity is out of range at speed 1 error continues...
+   *************  **   ~~~   **   This error occurred 62981 total times;
+   *************  **   ~~~   **   during Warmup 54148 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.000087  Min=0.000086
+   *************
+   *************  ** Warning ** Controller:OutdoorAir="VAV WITH REHEAT_OA_CONTROLLER": Min OA fraction > Mechanical ventilation OA fraction, continues...
+   *************  **   ~~~   **   This error occurred 7670 total times;
+   *************  **   ~~~   **   during Warmup 0 times;
+   *************  **   ~~~   **   during Sizing 0 times.
+   *************  **   ~~~   **   Max=0.547711  Min=0.547711
+   *************
+   *************
+   ************* ===== Final Error Summary =====
+   ************* The following error categories occurred.  Consider correcting or noting.
+   ************* Nominally Unused Constructions
+   ************* ..The nominally unused constructions warning is provided to alert you to potential conditions that can cause
+   ************* ..extra time during simulation. Each construction is calculated by the algorithm indicated in the HeatBalanceAlgorithm
+   ************* ..object. You may remove the constructions indicated (when you use the DisplayExtraWarnings option).
+   *************
+   ************* EnergyPlus Warmup Error Summary. During Warmup: 0 Warning; 0 Severe Errors.
+   ************* EnergyPlus Sizing Error Summary. During Sizing: 11 Warning; 0 Severe Errors.
+   ************* EnergyPlus Completed Successfully-- 101693 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  7.30sec
