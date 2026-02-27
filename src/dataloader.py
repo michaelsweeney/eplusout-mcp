@@ -8,6 +8,35 @@ from typing import Optional, Dict, Any, List
 import io
 import numpy as np
 import time
+import logging
+import ast
+
+logger = logging.getLogger(__name__)
+
+
+def _is_safe_expression(query: str) -> bool:
+    """
+    Check if expression only uses whitelisted attributes.
+    Prevents access to dangerous methods like __class__, __import__, etc.
+
+    Args:
+        query: Python expression to validate
+
+    Returns:
+        True if expression contains only safe attributes, False otherwise
+    """
+    try:
+        tree = ast.parse(query, mode='eval')
+    except SyntaxError:
+        return False
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute):
+            # Block private/dunder attributes
+            if node.attr.startswith('_'):
+                return False
+
+    return True
 
 
 def _format_result(result) -> str:
@@ -100,6 +129,9 @@ def execute_pandas_query(df: pd.DataFrame, query: str) -> str:
     """
 
     try:
+        # Validate expression doesn't contain dangerous attributes
+        if not _is_safe_expression(query):
+            return "Query contains restricted attributes (e.g., private/dunder methods)."
 
         # Create safe execution environment
         safe_globals = {
@@ -124,8 +156,13 @@ def execute_pandas_query(df: pd.DataFrame, query: str) -> str:
         # Format result
         return _format_result(result)
 
+    except SyntaxError:
+        return "Query syntax error. Check your expression and try again."
+    except NameError:
+        return "Undefined variable or function in query."
     except Exception as e:
-        return f"Query execution error: {str(e)}"
+        logger.error(f"Pandas query execution failed: {type(e).__name__}: {str(e)}")
+        return "Query execution failed. Please check your query syntax."
 
 
 def execute_multiline_pandas_query(df: pd.DataFrame, query: str) -> str:
@@ -212,6 +249,10 @@ def execute_multiline_pandas_query(df: pd.DataFrame, query: str) -> str:
     """
 
     try:
+        # Check for dangerous patterns in multiline code
+        if '__' in query or ('_' in query and 'import' in query):
+            return "Code contains restricted attributes (e.g., private/dunder methods)."
+
         # Create execution context
         context = {
             'df': df,
@@ -239,5 +280,10 @@ def execute_multiline_pandas_query(df: pd.DataFrame, query: str) -> str:
         else:
             return "Query executed successfully. Use 'result = ...' to see output."
 
+    except SyntaxError:
+        return "Code syntax error. Check your expression and try again."
+    except NameError:
+        return "Undefined variable or function in code."
     except Exception as e:
-        return f"Query execution error: {str(e)}"
+        logger.error(f"Query execution error: {type(e).__name__}: {str(e)}")
+        return "Query execution failed. Please check your code syntax."

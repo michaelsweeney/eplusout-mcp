@@ -12,7 +12,10 @@
       "Bash(python3:*)",
       "Bash(./.venv/Scripts/python:*)",
       "Bash(gh pr:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(python:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ]
   }
 }

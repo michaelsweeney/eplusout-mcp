@@ -25,10 +25,10 @@ def read_html_lines(html_file_path: str) -> list[str]:
         with open(html_file_path, 'r', encoding='utf-8') as file:
             lines = file.readlines()
     except FileNotFoundError:
-        print(f"Error: File '{html_file_path}' not found.")
+        print(f"Error: File not found.")
         return []
     except Exception as e:
-        print(f"Error reading file: {e}")
+        print(f"Error reading file: Permission denied or invalid path")
         return []
 
     return lines

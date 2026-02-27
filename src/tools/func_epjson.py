@@ -11,9 +11,24 @@ import json
 
 
 def read_epjson(epjsonfile: str) -> dict:
+    """
+    Read and parse epJSON file.
 
+    Args:
+        epjsonfile: Path to the epJSON file
 
-    with open(epjsonfile, 'r') as f:
-        epjd = json.load(f)
+    Returns:
+        Parsed JSON content as dictionary
 
-    return epjd
+    Raises:
+        ValueError: If file contains invalid JSON
+        IOError: If file cannot be read
+    """
+    try:
+        with open(epjsonfile, 'r') as f:
+            epjd = json.load(f)
+        return epjd
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in epJSON file: {str(e)[:50]}")
+    except Exception as e:
+        raise IOError(f"Cannot read epJSON file: Permission denied or file not found")

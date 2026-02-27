@@ -98,16 +98,17 @@ class SqlTables(BaseModel):
         return rows
 
 
-    def _exec_pandas_query(self, query):
+    def _exec_pandas_query(self, query, params=None):
         """
         Execute a SQL query on the file and return the result as a DataFrame.
         Args:
-            query (str): SQL query string.
+            query (str): SQL query string with optional ? placeholders for parameters.
+            params (tuple): Optional parameters for parameterized queries.
         Returns:
             pd.DataFrame: Query result.
         """
         conn = self._get_connection()
-        df = pd.read_sql((query), conn)
+        df = pd.read_sql(query, conn, params=params)
         return df
 
     def _df_to_tabledict(self, df):
@@ -166,7 +167,8 @@ class SqlTables(BaseModel):
         """
 
         if isinstance(tabledict, pd.DataFrame):
-            assert len(tabledict) == 1, 'more than one dataframe row passed'
+            if len(tabledict) != 1:
+                raise ValueError('Expected exactly one dataframe row, got {}'.format(len(tabledict)))
             report_name = tabledict['ReportName'].values[0]
             report_for = tabledict['ReportForString'].values[0]
             table_name = tabledict['TableName'].values[0]
@@ -189,7 +191,8 @@ class SqlTables(BaseModel):
 
 
         tablestr = self._exec_pandas_query(
-            "SELECT * FROM 'TabularData' WHERE TableNameIndex = {0} AND ReportForStringIndex = {1} AND ReportNameIndex = {2}".format(tablenameidx, reportforidx, reportnameidx))
+            "SELECT * FROM 'TabularData' WHERE TableNameIndex = ? AND ReportForStringIndex = ? AND ReportNameIndex = ?",
+            params=(tablenameidx, reportforidx, reportnameidx))
         strings = self._exec_pandas_query("SELECT * FROM 'Strings'")
 
         stringdict = self._df_cols_to_dict(strings, 'StringIndex', 'Value')
@@ -262,30 +265,35 @@ class SqlTimeseries(BaseModel):
         if self._conn is not None:
             self._conn.close()
 
-    def _exec_query(self, query):
+    def _exec_query(self, query, params=None):
         """
-        Execute a SQL query on the file and return the result as a DataFrame.
+        Execute a SQL query on the file and return the result.
         Args:
-            query (str): SQL query string.
+            query (str): SQL query string with optional ? placeholders for parameters.
+            params (tuple): Optional parameters for parameterized queries.
         Returns:
-            pd.DataFrame: Query result.
+            Query result (list of tuples).
         """
         conn = self._get_connection()
         cursor = conn.cursor()
-        cursor.execute(query)
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
         res = cursor.fetchall()
         return res
 
-    def _df_query(self, query):
+    def _df_query(self, query, params=None):
         """
         Execute a SQL query on the file and return the result as a DataFrame.
         Args:
-            query (str): SQL query string.
+            query (str): SQL query string with optional ? placeholders for parameters.
+            params (tuple): Optional parameters for parameterized queries.
         Returns:
             pd.DataFrame: Query result.
         """
         conn = self._get_connection()
-        df = pd.read_sql(query, conn)
+        df = pd.read_sql(query, conn, params=params)
         return df
 
     def _df_to_tabledict(self, df):
@@ -379,8 +387,6 @@ class SqlTimeseries(BaseModel):
 
         return df.to_dict(orient='records')
 
-        return df.T.to_dict()
-
     def queryseries(self, filterquery):
         """
         Filter available series for a string and return the matching DataFrame.
@@ -406,11 +412,13 @@ class SqlTimeseries(BaseModel):
 
             """
 
+        # Validate RDD ID input
+        if not isinstance(rddid, int):
+            raise TypeError(f"RDD ID must be an integer, got {type(rddid).__name__}")
+        if rddid <= 0:
+            raise ValueError(f"RDD ID must be positive, got {rddid}")
 
-        # rddi = str(tuple(df.ReportDataDictionaryIndex))
-        # return rddi
-
-        labelquery = self._exec_query(f"SELECT * FROM ReportDataDictionary WHERE ReportDataDictionaryIndex == {rddid}")
+        labelquery = self._exec_query("SELECT * FROM ReportDataDictionary WHERE ReportDataDictionaryIndex = ?", params=(rddid,))
         if len(labelquery) == 1:
             labelquery = labelquery[0]
         elif len(labelquery) > 1:
@@ -421,8 +429,8 @@ class SqlTimeseries(BaseModel):
 
         ReportDataDictionaryIndex, IsMeter, Type, IndexGroup, TimestepType, KeyValue, Name, ReportingFrequency, ScheduleName, Units = labelquery
 
-        listquery = f'SELECT "Value","ReportDataDictionaryIndex","TimeIndex" FROM "ReportData" WHERE "ReportDataDictionaryIndex" == {rddid}'
-        df_query = self._df_query(listquery)
+        listquery = 'SELECT "Value","ReportDataDictionaryIndex","TimeIndex" FROM "ReportData" WHERE "ReportDataDictionaryIndex" = ?'
+        df_query = self._df_query(listquery, params=(rddid,))
 
         df_query['Name'] = Name
         df_query['ScheduleName'] = ScheduleName
@@ -469,7 +477,6 @@ class SqlTimeseries(BaseModel):
 
 
         rddi = str(tuple(df.ReportDataDictionaryIndex))
-        # return rddi
 
         listquery = 'SELECT "Value","ReportDataDictionaryIndex","TimeIndex" FROM "ReportData" WHERE "ReportDataDictionaryIndex" IN ' + rddi
         df_query = self._df_query(listquery)

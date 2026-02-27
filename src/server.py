@@ -2,7 +2,7 @@ from pathlib import Path
 import time
 import pandas as pd
 import glob as gb
-
+import logging
 
 from typing import Any
 from mcp.server.fastmcp import FastMCP
@@ -10,6 +10,8 @@ from src.monitor import log_mcp_call
 from src import CACHE_PICKLE, EPLUS_RUNS_DIRECTORY
 from src.model_data import initialize_model_map_from_directory, read_or_initialize_model_map
 from src.dataloader import execute_pandas_query, execute_multiline_pandas_query
+
+logger = logging.getLogger(__name__)
 
 mcp = FastMCP("eplus_outputs")
 
@@ -27,10 +29,37 @@ def _get_current_directory() -> str:
     return _current_directory
 
 
+def _validate_directory(directory: str) -> str:
+    """
+    Validate that directory path is within EPLUS_RUNS_DIRECTORY.
+    Prevents path traversal attacks.
+
+    Args:
+        directory: Directory path to validate
+
+    Returns:
+        Absolute path as string if valid
+
+    Raises:
+        ValueError: If directory is outside EPLUS_RUNS_DIRECTORY
+    """
+    target_path = Path(directory).absolute()
+    base_path = Path(EPLUS_RUNS_DIRECTORY).absolute()
+
+    try:
+        target_path.relative_to(base_path)
+    except ValueError:
+        raise ValueError(
+            f"Directory must be within {base_path}, got {target_path}"
+        )
+
+    return str(target_path)
+
+
 def _set_current_directory(directory: str) -> None:
     """Set the directory to be used by all model tools."""
     global _current_directory
-    _current_directory = str(Path(directory).absolute())
+    _current_directory = _validate_directory(directory)
 
 @mcp.tool()
 def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
@@ -507,6 +536,9 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: list[int]) -> Any:
 
     resultlist = []
     for rdd in rddid:
+        # Validate RDD ID
+        if not isinstance(rdd, int) or rdd <= 0:
+            raise ValueError(f"Invalid RDD ID: {rdd}. Must be a positive integer.")
         rdf = model.sql_data.get_timeseries().getseries_by_record_id(rdd)
         resultlist.append(rdf)
 
@@ -559,9 +591,10 @@ def get_usage_instructions() -> str:
             )
             return result
     except FileNotFoundError:
-        return "Usage instructions file not found. Please ensure CLAUDE.md exists in the src directory."
+        return "Usage instructions not available."
     except Exception as e:
-        return f"Error reading usage instructions: {str(e)}"
+        logger.error(f"Error reading usage instructions: {type(e).__name__}")
+        return "Unable to load usage instructions. Please try again later."
 
 
 @mcp.tool()
