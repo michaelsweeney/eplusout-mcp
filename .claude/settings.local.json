@@ -15,7 +15,12 @@
       "Bash(wc:*)",
       "Bash(python:*)",
       "Bash(mkdir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(find example-files:*)",
+      "Bash(xargs:*)",
+      "Bash(sed:*)",
+      "Bash(uv run:*)",
+      "Bash(uv sync:*)"
     ]
   }
 }

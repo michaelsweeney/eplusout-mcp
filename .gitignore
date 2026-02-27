@@ -6,7 +6,7 @@ dist/
 wheels/
 *.egg-info
 protoss/
-mcp_cache/
+mcp_cache/modelmap.pickle.gz
 # Virtual environments
 .venv
 parquet/
@@ -16,4 +16,5 @@ mcp_output
 eplus_files
 
 # Generated logs
-monitor_logs/
+monitor_logs/mcp_calls.log
+
