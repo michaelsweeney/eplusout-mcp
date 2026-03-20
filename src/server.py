@@ -14,6 +14,14 @@ mcp = FastMCP("eplus_outputs")
 
 DEFAULT_DIRECTORY = 'example-files'
 MAX_RESPONSE_CHARS = 10000
+DOCS_PATH = Path(__file__).parent / "CLAUDE.md"
+
+
+@mcp.resource("eplus://docs")
+def get_docs() -> str:
+    """EnergyPlus MCP server usage instructions and reference links."""
+    with open(DOCS_PATH) as f:
+        return f.read()
 
 
 def _truncate_response(result, label: str = "result"):

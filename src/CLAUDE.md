@@ -33,6 +33,26 @@ Files are grouped by **directory + filename stem**:
 - **`.table.htm`** — HTML summary reports (accessed via HTML tools)
 - **`.err`** / **`.rdd`** — Error and report data dictionary files (read directly via file path)
 
+## EnergyPlus Reference Documentation
+
+The official EnergyPlus Input/Output Reference is hosted by Big Ladder Software:
+
+- **Docs index**: `https://bigladdersoftware.com/epx/docs/`
+- **I/O Reference (v24.1)**: `https://bigladdersoftware.com/epx/docs/24-1/input-output-reference/`
+- **Engineering Reference (v24.1)**: `https://bigladdersoftware.com/epx/docs/24-1/engineering-reference/`
+
+**URL pattern**: `https://bigladdersoftware.com/epx/docs/{major}-{minor}/input-output-reference/`
+
+Replace `{major}-{minor}` with the EnergyPlus version (e.g., `25-2`, `24-1`, `23-2`, `9-6`). Available versions: 8.0 through 25.2.
+
+**Object documentation** is organized by group pages:
+- `group-coils.html` — Coil objects
+- `group-hvac-templates.html` — HVAC template objects
+- `group-surface-construction-elements.html` — Construction/material objects
+- `group-thermal-zones-and-surfaces.html` — Zone and surface objects
+
+To look up a specific EnergyPlus object type, use `WebFetch` on the appropriate group page URL.
+
 ## HTML Keyword Categories
 
 **Energy**: `energy`, `consumption`, `end use`, `electricity`, `natural gas`, `annual`, `monthly`
