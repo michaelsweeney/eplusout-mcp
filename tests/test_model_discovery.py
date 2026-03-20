@@ -54,9 +54,9 @@ def test_get_basic_attributes(atlanta_model):
     attrs = atlanta_model.get_basic_attributes()
     assert attrs["model_id"] == "./ASHRAE901_HotelLarge_STD2013_Atlanta"
     assert attrs["stem"] == "ASHRAE901_HotelLarge_STD2013_Atlanta"
-    assert "epjson" in attrs["files"]
-    assert "sql" in attrs["files"]
-    assert "html" in attrs["files"]
+    assert "epjson" in attrs["file_types"]
+    assert "sql" in attrs["file_types"]
+    assert "html" in attrs["file_types"]
 
 
 def test_get_all_model_ids(model_map):

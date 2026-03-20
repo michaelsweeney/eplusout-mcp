@@ -173,20 +173,18 @@ class ModelFileData(BaseModel):
 
     def get_basic_attributes(self):
         """Get basic model attributes for display"""
-        files = {}
+        file_types = []
         if self.epjson_data:
-            files['epjson'] = self.epjson_data.file_path
+            file_types.append('epjson')
         if self.sql_data:
-            files['sql'] = self.sql_data.file_path
+            file_types.append('sql')
         if self.html_data:
-            files['html'] = self.html_data.file_path
+            file_types.append('html')
 
         return {
             'model_id': self.model_id,
-            'directory': self.directory,
             'stem': self.stem,
-            'display_name': self.display_name,
-            'files': files
+            'file_types': file_types
         }
 
     def get_associated_files_by_type(self, ext: str, file_type: Literal['plain_text', 'csv'] = 'plain_text'):
