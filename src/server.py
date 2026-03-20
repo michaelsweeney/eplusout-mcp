@@ -1,6 +1,7 @@
 from pathlib import Path
 import pandas as pd
 import logging
+import json
 
 from typing import Any
 from mcp.server.fastmcp import FastMCP
@@ -12,6 +13,46 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("eplus_outputs")
 
 DEFAULT_DIRECTORY = 'example-files'
+MAX_RESPONSE_CHARS = 10000
+
+
+def _truncate_response(result, label: str = "result"):
+    """
+    Truncate a response if it exceeds MAX_RESPONSE_CHARS.
+    Returns the original result if small enough, or a truncated
+    version with metadata about what was cut.
+    """
+    text = json.dumps(result, default=str) if not isinstance(result, str) else result
+
+    if len(text) <= MAX_RESPONSE_CHARS:
+        return result
+
+    # For lists, return a subset with a count
+    if isinstance(result, list):
+        total = len(result)
+        # Binary search for how many items fit
+        for i in range(total, 0, -1):
+            subset = json.dumps(result[:i], default=str)
+            if len(subset) <= MAX_RESPONSE_CHARS - 200:  # leave room for metadata
+                return {
+                    "truncated": True,
+                    "showing": i,
+                    "total_rows": total,
+                    "message": f"Response truncated: showing {i} of {total} rows. Request a more specific query to see all data.",
+                    label: result[:i]
+                }
+        return {
+            "truncated": True,
+            "total_rows": total,
+            "message": f"Response too large ({total} rows). Request a more specific query."
+        }
+
+    # For dicts/other, just warn
+    return {
+        "truncated": True,
+        "total_chars": len(text),
+        "message": f"Response too large ({len(text)} chars). Request a more specific query."
+    }
 
 # Global state
 _current_directory: str | None = None
@@ -143,17 +184,16 @@ def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
     model = model_map.get_model_by_id(id)
     table = model.html_data.get_table_by_tuple(query_tuple, asjson=True)
 
-    result = table
     log_mcp_call(
         'get_html_table_by_tuple',
-        result,
+        table,
         kwargs={
             'id': id,
             'query_tuple': query_tuple
         }
     )
 
-    return table
+    return _truncate_response(table, "rows")
 
 
 @mcp.tool()
@@ -219,7 +259,7 @@ def get_sql_available_hourlies(id: str) -> list | dict:
 
     log_mcp_call('get_sql_available_hourlies', result, kwargs={'id': id})
 
-    return result
+    return _truncate_response(result, "variables")
 
 
 
@@ -332,7 +372,7 @@ def search_epjson_objects(
         }
     )
 
-    return result
+    return _truncate_response(result, "search_results")
 
 
 @mcp.tool()
@@ -493,7 +533,7 @@ def search_related_objects(model_id: str, search_pattern: str) -> dict:
         }
     )
 
-    return result
+    return _truncate_response(result, "related_objects")
 
 
 
@@ -551,15 +591,16 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: int | list[int]) -> Any
         dflist.append(dfr[r_lbl])
 
     dff = pd.concat(dflist, axis=1)
+    result = dff.reset_index().to_dict(orient='records')
     log_mcp_call(
         'get_timeseries_report_by_rddid',
-        dff,
+        f'{len(result)} records',
         kwargs={
             'model_id': model_id,
             'rddid': rddid,
         }
     )
-    return dff
+    return _truncate_response(result, "records")
 
 
 
