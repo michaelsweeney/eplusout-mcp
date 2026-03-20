@@ -17,23 +17,17 @@ MAX_RESPONSE_CHARS = 10000
 
 
 def _truncate_response(result, label: str = "result"):
-    """
-    Truncate a response if it exceeds MAX_RESPONSE_CHARS.
-    Returns the original result if small enough, or a truncated
-    version with metadata about what was cut.
-    """
+    """Truncate a response if it exceeds MAX_RESPONSE_CHARS."""
     text = json.dumps(result, default=str) if not isinstance(result, str) else result
 
     if len(text) <= MAX_RESPONSE_CHARS:
         return result
 
-    # For lists, return a subset with a count
     if isinstance(result, list):
         total = len(result)
-        # Binary search for how many items fit
         for i in range(total, 0, -1):
             subset = json.dumps(result[:i], default=str)
-            if len(subset) <= MAX_RESPONSE_CHARS - 200:  # leave room for metadata
+            if len(subset) <= MAX_RESPONSE_CHARS - 200:
                 return {
                     "truncated": True,
                     "showing": i,
@@ -47,25 +41,15 @@ def _truncate_response(result, label: str = "result"):
             "message": f"Response too large ({total} rows). Request a more specific query."
         }
 
-    # For dicts/other, just warn
     return {
         "truncated": True,
         "total_chars": len(text),
         "message": f"Response too large ({len(text)} chars). Request a more specific query."
     }
 
+
 # Global state
-_current_directory: str | None = None
 _model_map = None
-
-
-def _get_current_directory() -> str:
-    """Get the currently active directory for model operations."""
-    if _current_directory is None:
-        raise ValueError(
-            "No directory set. Call initialize_model_map(directory) first."
-        )
-    return _current_directory
 
 
 def _get_model_map():
@@ -77,639 +61,55 @@ def _get_model_map():
     return _model_map
 
 
-def _validate_directory(directory: str) -> str:
-    """
-    Validate that a directory path exists and is a directory.
+@mcp.tool()
+def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
+    """Scan a directory for EnergyPlus model files (.epJSON, .sql, .htm) and build a model catalog. Call this first."""
 
-    Args:
-        directory: Directory path to validate
-
-    Returns:
-        Absolute path as string if valid
-
-    Raises:
-        ValueError: If path does not exist or is not a directory
-    """
+    global _model_map
     target_path = Path(directory).resolve()
-
     if not target_path.exists():
         raise ValueError(f"Directory does not exist: {target_path}")
     if not target_path.is_dir():
         raise ValueError(f"Path is not a directory: {target_path}")
 
-    return str(target_path)
-
-
-def _set_current_directory(directory: str) -> None:
-    """Set the directory to be used by all model tools."""
-    global _current_directory
-    _current_directory = _validate_directory(directory)
-
-@mcp.tool()
-def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
-
-    """
-    Initialize or refresh the model map for EnergyPlus models.
-
-    Scans a directory recursively for EnergyPlus model files (.epJSON, .sql, .htm) and creates
-    a model map for access. Files are grouped by directory and filename stem,
-    so 'mydir/model1.sql' and 'mydir/model1.epJSON' will be recognized as part of the same model.
-    Call this first before accessing model data.
-
-    Args:
-        directory: Directory containing EnergyPlus model files. Defaults to 'DEFAULT_DIRECTORY'.
-                  Subdirectories will be scanned recursively.
-
-    Returns:
-        Status message confirming successful initialization.
-    """
-
-    global _model_map
     _model_map = initialize_model_map_from_directory(directory)
-    _set_current_directory(directory)
     model_count = len(_model_map.models)
     result = f"Model map initialized successfully for directory: {directory} ({model_count} models found)"
-    log_mcp_call('setup_model_map', result, kwargs={'directory': directory})
-
+    log_mcp_call('initialize_model_map', result, kwargs={'directory': directory})
     return result
 
 
 @mcp.tool()
-def get_available_models(directory: str = DEFAULT_DIRECTORY) -> dict:
-    """
-    Retrieve all available EnergyPlus models and their file locations.
-
-    Returns detailed information about all discovered EnergyPlus models,
-    including their unique identifiers for use with other tools.
-    This function returns models from the directory set by the most recent
-    initialize_model_map() call.
-
-    Args:
-        directory: Directory parameter (informational; the active directory is controlled by initialize_model_map()).
-
-    Returns:
-        List of dictionaries containing model information:
-        - model_id: Unique identifier for use with other tools (e.g., 'mydir/eplusout')
-        - directory: Directory path where model files are located
-        - stem: Filename stem (filename without extension)
-        - display_name: User-friendly name for the model
-        - files: Dictionary of available file paths (epjson, sql, html)
-    """
+def get_available_models() -> list:
+    """List all discovered models with IDs, file types, and file paths for direct access."""
 
     model_map = _get_model_map()
-
-    # Directly return list of attributes instead of converting through DataFrame
     result = [x.get_basic_attributes() for x in model_map.models]
-
-    log_mcp_call('get_available_models', result, kwargs={'directory': directory})
-
+    log_mcp_call('get_available_models', result)
     return result
-
-
-@mcp.tool()
-def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
-    """
-    Retrieve a specific HTML table from an EnergyPlus model using a tuple query.
-
-    Args:
-        id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        query_tuple: A tuple containing (zone/component, report_name, table_name)
-                    to identify the specific table to retrieve.
-
-    Returns:
-        JSON string containing the requested table data with columns and rows.
-    """
-
-    model_map = _get_model_map()
-    model = model_map.get_model_by_id(id)
-    table = model.html_data.get_table_by_tuple(query_tuple, asjson=True)
-
-    log_mcp_call(
-        'get_html_table_by_tuple',
-        table,
-        kwargs={
-            'id': id,
-            'query_tuple': query_tuple
-        }
-    )
-
-    return _truncate_response(table, "rows")
-
-
-@mcp.tool()
-def get_rdd_file(id: str) -> list[str]:
-    """
-    Retrieve a specific RDD file from an EnergyPlus model using ID.
-    Useful in debugging.
-
-    Args:
-        id: The model_id of the EnergyPlus model (obtain from get_available_models).
-
-    Returns:
-        Plain text output of RDD file, which shows available output reports.
-    """
-
-    model_map = _get_model_map()
-    model = model_map.get_model_by_id(id)
-    err_file = model.get_associated_files_by_type('rdd')
-    return err_file
-
-
-@mcp.tool()
-def get_error_file(id: str) -> list[str]:
-    """
-    Retrieve a specific Error file from an EnergyPlus model using ID.
-    Useful in debugging.
-
-    Args:
-        id: The model_id of the EnergyPlus model (obtain from get_available_models).
-
-    Returns:
-        Plain text output of EPlus error file
-    """
-
-    model_map = _get_model_map()
-    model = model_map.get_model_by_id(id)
-    err_file = model.get_associated_files_by_type('err')
-    return err_file
-
-
-
-
-@mcp.tool()
-def get_sql_available_hourlies(id: str) -> list | dict:
-    """
-    List available hourly timeseries variables in the SQL output for a specific model.
-
-    Discovers all hourly timeseries data available in a model's SQL output database,
-    providing variable names and RDD IDs needed to extract specific timeseries data.
-
-    Args:
-        id: The model_id of the EnergyPlus model (obtain from get_available_models).
-
-    Returns:
-        Available hourly timeseries variables including:
-        - Variable names (e.g., 'Zone Air Temperature', 'HVAC Electric Power')
-        - RDD IDs for use with get_timeseries_report_by_rddid
-        - Units and key values for each variable
-    """
-    model_map = _get_model_map()
-    model = model_map.get_model_by_id(id)
-    result = model.sql_data.get_timeseries().availseries()
-
-    log_mcp_call('get_sql_available_hourlies', result, kwargs={'id': id})
-
-    return _truncate_response(result, "variables")
-
-
-
-@mcp.tool()
-def search_epjson_objects(
-        model_id: str,
-        object_type: str = None,
-        object_name: str = None,
-        search_pattern: str = None,
-        case_sensitive: bool = False
-) -> dict:
-    """
-    Search for specific objects in epJSON data structure.
-
-    Searches through the epJSON model data to find objects matching the specified criteria.
-    Useful for finding specific components, systems, or zones within the building model.
-
-    Args:
-        model_id: The model_id of the EnergyPlus model
-        object_type: Specific EnergyPlus object type (e.g., "Coil:Cooling:WaterToAirHeatPump:EquationFit")
-        object_name: Specific object name (e.g., "ROOM_1_FLR_3 COOLING COIL")
-        search_pattern: Pattern to search for in object names (e.g., "ROOM_1_FLR_3")
-        case_sensitive: Whether to perform case-sensitive search
-
-    Returns:
-        Dictionary containing:
-        - search_results: Matching objects organized by type
-        - search_criteria: The search parameters used
-        - search_stats: Statistics about the search results
-    """
-
-
-    # Get the epJSON data
-    model_map = _get_model_map()
-    model = model_map.get_model_by_id(model_id)
-    epjson_data = model.epjson_data.get_data()
-
-    if not epjson_data:
-        return {"error": f"No epJSON data found for model {model_id}"}
-
-    results = {}
-    search_stats = {
-        "total_object_types": 0,
-        "total_objects": 0,
-        "matches_found": 0
-    }
-
-    # Helper function for pattern matching
-    def matches_pattern(text, pattern, case_sensitive):
-        if not pattern:
-            return True
-        if case_sensitive:
-            return pattern in text
-        return pattern.lower() in text.lower()
-
-    # Search through all object types
-    for obj_type, objects in epjson_data.items():
-        if not isinstance(objects, dict):
-            continue
-
-        search_stats["total_object_types"] += 1
-
-        # Skip if specific object type requested and this isn't it
-        if object_type and obj_type != object_type:
-            continue
-
-        # Search through objects of this type
-        for obj_name, obj_data in objects.items():
-            search_stats["total_objects"] += 1
-
-            # Check if this object matches our search criteria
-            matches = True
-
-            # Check object name match
-            if object_name and obj_name != object_name:
-                matches = False
-
-            # Check pattern match
-            if search_pattern and not matches_pattern(obj_name, search_pattern, case_sensitive):
-                matches = False
-
-            # If matches, add to results
-            if matches:
-                if obj_type not in results:
-                    results[obj_type] = {}
-                results[obj_type][obj_name] = obj_data
-                search_stats["matches_found"] += 1
-
-
-    result = {
-        "search_results": results,
-        "matches_found": search_stats["matches_found"]
-    }
-
-    log_mcp_call(
-        'search_epjson_objects',
-        result,
-        kwargs={
-            'model_id': model_id,
-            'object_type': object_type,
-            'object_name': object_name,
-            'search_pattern': search_pattern,
-            'case_sensitive': case_sensitive
-        }
-    )
-
-    return _truncate_response(result, "search_results")
-
-
-@mcp.tool()
-def get_object_properties(
-        model_id: str,
-        object_type: str,
-        object_name: str) -> dict:
-    """
-    Get detailed properties of a specific EnergyPlus object.
-
-    Retrieves all properties and values for a specific object in the epJSON model,
-    providing complete configuration details for analysis.
-
-    Args:
-        model_id: The model_id of the EnergyPlus model
-        object_type: EnergyPlus object type
-        object_name: Specific object name
-
-    Returns:
-        Dictionary containing:
-        - object_type: The EnergyPlus object type
-        - object_name: The specific object name
-        - properties: All object properties and their values
-        - property_count: Number of properties
-        - model_id: The model identifier
-    """
-    search_result = search_epjson_objects(
-        model_id=model_id,
-        object_type=object_type,
-        object_name=object_name
-    )
-
-    if not search_result["search_results"]:
-        return {"error": f"Object '{object_name}' of type '{object_type}' not found"}
-
-    result = search_result["search_results"][object_type][object_name]
-
-    log_mcp_call(
-        'get_object_properties',
-        result,
-        kwargs={
-            'model_id': model_id,
-            'object_type': object_type,
-            'object_name': object_name,
-        }
-    )
-
-    return result
-
-
-@mcp.tool()
-def list_objects_by_type(model_id: str, object_type: str) -> dict:
-    """
-    List all objects of a specific type in the epJSON model.
-
-    Retrieves all objects of a specified EnergyPlus object type, providing
-    an overview of all components of that type in the building model.
-
-    Args:
-        model_id: The model_id of the EnergyPlus model
-        object_type: EnergyPlus object type to list
-
-    Returns:
-        Dictionary containing:
-        - object_type: The requested object type
-        - object_count: Number of objects found
-        - objects: All objects of the specified type with their properties
-        - model_id: The model identifier
-    """
-    search_result = search_epjson_objects(
-        model_id=model_id,
-        object_type=object_type
-    )
-
-    if object_type not in search_result["search_results"]:
-        return {"error": f"No objects of type '{object_type}' found"}
-
-    objects = search_result["search_results"][object_type]
-
-    result = {
-        "object_count": len(objects),
-        "object_names": list(objects.keys()),
-    }
-    log_mcp_call(
-        'list_objects_by_type',
-        result,
-        kwargs={
-            'model_id': model_id,
-            'object_type': object_type,
-        }
-    )
-    return result
-
-
-@mcp.tool()
-def search_related_objects(model_id: str, search_pattern: str) -> dict:
-    """
-    Search for all objects related to a specific component or pattern.
-
-    Finds all objects in the epJSON model that contain a specific pattern in their names,
-    useful for analyzing all components related to a particular zone, system, or equipment.
-
-    Args:
-        model_id: The model_id of the EnergyPlus model
-        search_pattern: Pattern to search for (e.g., "ROOM_1_FLR_3")
-
-    Returns:
-        Dictionary containing:
-        - search_pattern: The pattern that was searched for
-        - total_matches: Total number of matching objects
-        - related_objects: Objects organized by type, with counts and details
-        - model_id: The model identifier
-    """
-    search_result = search_epjson_objects(
-        model_id=model_id,
-        search_pattern=search_pattern
-    )
-
-    related_objects = {}
-    total_matches = 0
-
-    for obj_type, objects in search_result["search_results"].items():
-        if objects:
-            related_objects[obj_type] = list(objects.keys())
-            total_matches += len(objects)
-
-    result = {
-        "total_matches": total_matches,
-        "related_objects": related_objects,
-    }
-
-    log_mcp_call(
-        'search_related_objects',
-        result,
-        kwargs={
-            'model_id': model_id,
-            'search_pattern': search_pattern,
-        }
-    )
-
-    return _truncate_response(result, "related_objects")
-
-
-
-
-@mcp.tool()
-def get_timeseries_report_by_rddid_list(model_id, rddid: int | list[int]) -> Any:
-    """
-    Retrieve hourly timeseries data for a specific variable from an EnergyPlus model.
-
-    Extracts complete hourly timeseries data for a specific variable using its
-    RDD (Report Data Dictionary) ID, providing timestamped values for analysis.
-
-    Args:
-        model_id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        rddid: RDD ID or list of RDD IDs (integers) for the desired variables (obtain from get_sql_available_hourlies).
-
-    Returns:
-        List of timestamped records, each containing:
-        - dt: Timestamp for the data point
-        - Value: Numeric value for the variable
-        - Name: Variable name (e.g., 'Zone Air Temperature')
-        - KeyValue: Zone or component identifier
-        - Units: Units of measurement
-
-    Example:
-        First use get_sql_available_hourlies to find the RDD ID for 'Zone Air Temperature',
-        then use that ID with this tool.
-    """
-    if isinstance(rddid, int):
-        rddid = [rddid]
-
-    model_map = _get_model_map()
-    model = model_map.get_model_by_id(model_id)
-
-    resultlist = []
-    for rdd in rddid:
-        # Validate RDD ID
-        if not isinstance(rdd, int) or rdd <= 0:
-            raise ValueError(f"Invalid RDD ID: {rdd}. Must be a positive integer.")
-        rdf = model.sql_data.get_timeseries().getseries_by_record_id(rdd)
-        resultlist.append(rdf)
-
-    dflist = []
-    for r in resultlist:
-        tr = r[0]
-
-        r_lbl = f'{tr['KeyValue']}-{tr['Name']}-{tr['TimestepType']}-{tr['Units']}'
-
-        dfr = pd.DataFrame(r)
-        dfr = dfr.set_index('dt')
-
-        dfr.name = r_lbl
-        dfr = dfr.rename({"Value": r_lbl}, axis=1)
-
-        dflist.append(dfr[r_lbl])
-
-    dff = pd.concat(dflist, axis=1)
-    split = dff.reset_index().to_dict(orient='split')
-    result = {"columns": split["columns"], "data": split["data"]}
-    log_mcp_call(
-        'get_timeseries_report_by_rddid',
-        f'{len(result)} records',
-        kwargs={
-            'model_id': model_id,
-            'rddid': rddid,
-        }
-    )
-    return _truncate_response(result, "records")
-
-
-
-@mcp.tool()
-def get_usage_instructions() -> str:
-    """
-    Get comprehensive usage instructions for the EnergyPlus MCP server.
-
-    Returns detailed documentation about how to use all available tools,
-    including workflow guidance, data structures, and best practices.
-
-    Returns:
-        Complete usage instructions and documentation for the MCP server.
-    """
-    try:
-        with open('src/CLAUDE.md', 'r') as f:
-            result = f.read()
-            log_mcp_call(
-                'get_usage_instructions',
-                result,
-                kwargs={
-                }
-            )
-            return result
-    except FileNotFoundError:
-        return "Usage instructions not available."
-    except Exception as e:
-        logger.error(f"Error reading usage instructions: {type(e).__name__}")
-        return "Unable to load usage instructions. Please try again later."
 
 
 @mcp.tool()
 def search_html_tables_by_keyword(id: str, keywords: str | list[str], case_sensitive: bool = False) -> dict:
-    """
-    Search for HTML tables containing specific keywords in their names.
-
-    Filters available HTML tables based on keyword matches in table names,
-    report names, or other metadata. Useful for finding specific types of tables
-    like 'cooling', 'heating', 'energy', etc.
-
-    Args:
-        id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        keywords: Keyword or list of keywords to search for (e.g., 'cooling' or ['cooling', 'coil'])
-        case_sensitive: Whether to perform case-sensitive search (default: False)
-
-    Returns:
-        Dictionary containing:
-        - matching_tables: List of tables that match the keywords
-        - search_keywords: The keywords that were searched for
-        - total_matches: Number of matching tables found
-        - search_stats: Statistics about the search
-        - model_id: The model identifier
-
-    Examples:
-        # Find cooling-related tables
-        search_html_tables_by_keyword(model_id, ['cooling', 'coil'])
-
-        # Find energy consumption tables
-        search_html_tables_by_keyword(model_id, ['energy', 'consumption'])
-
-        # Case-sensitive search for specific terms
-        search_html_tables_by_keyword(model_id, ['DX', 'VAV'], case_sensitive=True)
-
-    Common Keyword Categories:
-
-    Energy & Consumption:
-        ['energy', 'consumption', 'end use', 'site energy', 'source energy',
-         'electricity', 'natural gas', 'fuel', 'annual', 'monthly',
-         'utility', 'cost', 'performance']
-
-    Cooling Systems:
-        ['cooling', 'coil', 'capacity', 'chiller', 'dx cooling',
-         'sensible cooling', 'latent cooling', 'peak cooling',
-         'cooling tower', 'evaporative cooler', 'refrigeration']
-
-    Heating Systems:
-        ['heating', 'boiler', 'heat pump', 'heating coil', 'heat recovery',
-         'sensible heating', 'peak heating', 'furnace', 'baseboard',
-         'radiant heating', 'heat exchanger']
-
-    HVAC Components:
-        ['fan', 'pump', 'air loop', 'plant loop', 'zone equipment',
-         'terminal unit', 'ahu', 'air handler', 'vav', 'cav']
-
-    Building Envelope:
-        ['window', 'wall', 'roof', 'floor', 'construction', 'material',
-         'thermal bridge', 'infiltration', 'ventilation']
-
-    Lighting & Equipment:
-        ['lighting', 'electric equipment', 'gas equipment', 'occupancy',
-         'schedule', 'internal load', 'plug load']
-    """
+    """Search for HTML report tables matching keywords in table/report names. Returns list of (report_for, report_name, table_name) tuples for use with get_html_table_by_tuple."""
 
     if isinstance(keywords, str):
         keywords = [keywords]
 
     model_map = _get_model_map()
     model = model_map.get_model_by_id(id)
-
-    # Get all table data
     report_data = model.html_data.get_report_names()
 
     matching_tables = []
-    search_stats = {
-        "total_tables_searched": len(report_data) if isinstance(report_data, list) else 0,
-        "keywords_used": keywords,
-        "case_sensitive": case_sensitive
-    }
 
-    # Helper function to check if any keyword matches
-    def contains_keywords(text, keywords, case_sensitive):
-        if not text:
-            return False
-
-        search_text = text if case_sensitive else text.lower()
-        search_keywords = keywords if case_sensitive else [kw.lower() for kw in keywords]
-
-        return any(keyword in search_text for keyword in search_keywords)
-
-    # Search through tables
     if isinstance(report_data, list):
         for table_info in report_data:
             if isinstance(table_info, tuple):
-                table_name, report_name, report_for = table_info
+                combined_text = ' '.join(str(field) for field in table_info)
+                search_text = combined_text if case_sensitive else combined_text.lower()
+                search_keywords = keywords if case_sensitive else [kw.lower() for kw in keywords]
 
-                # Check various fields for keyword matches
-                fields_to_search = [
-                    table_name, report_name, report_for
-                ]
-
-                # Combine all searchable text
-                combined_text = ' '.join(str(field) for field in fields_to_search)
-
-                if contains_keywords(combined_text, keywords, case_sensitive):
+                if any(keyword in search_text for keyword in search_keywords):
                     matching_tables.append(table_info)
 
     result = {
@@ -718,17 +118,66 @@ def search_html_tables_by_keyword(id: str, keywords: str | list[str], case_sensi
     }
 
     log_mcp_call(
-        'search_html_tables_by_keyword',
-        result,
-        kwargs={
-            'id': id,
-            'keywords': keywords,
-            'case_sensitive': case_sensitive
-        }
+        'search_html_tables_by_keyword', result,
+        kwargs={'id': id, 'keywords': keywords, 'case_sensitive': case_sensitive}
     )
-
     return result
 
 
+@mcp.tool()
+def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
+    """Retrieve a specific HTML table using a (report_for, report_name, table_name) tuple from search results."""
+
+    model_map = _get_model_map()
+    model = model_map.get_model_by_id(id)
+    table = model.html_data.get_table_by_tuple(query_tuple, asjson=True)
+
+    log_mcp_call(
+        'get_html_table_by_tuple', table,
+        kwargs={'id': id, 'query_tuple': query_tuple}
+    )
+    return _truncate_response(table, "rows")
 
 
+@mcp.tool()
+def get_sql_available_hourlies(id: str) -> list | dict:
+    """List available hourly timeseries variables with RDD IDs for use with get_timeseries_report_by_rddid_list."""
+
+    model_map = _get_model_map()
+    model = model_map.get_model_by_id(id)
+    result = model.sql_data.get_timeseries().availseries()
+
+    log_mcp_call('get_sql_available_hourlies', result, kwargs={'id': id})
+    return _truncate_response(result, "variables")
+
+
+@mcp.tool()
+def get_timeseries_report_by_rddid_list(model_id: str, rddid: int | list[int]) -> Any:
+    """Extract hourly timeseries data by RDD ID(s). Returns columnar data with datetime index."""
+
+    if isinstance(rddid, int):
+        rddid = [rddid]
+
+    model_map = _get_model_map()
+    model = model_map.get_model_by_id(model_id)
+
+    dflist = []
+    for rdd in rddid:
+        if not isinstance(rdd, int) or rdd <= 0:
+            raise ValueError(f"Invalid RDD ID: {rdd}. Must be a positive integer.")
+        r = model.sql_data.get_timeseries().getseries_by_record_id(rdd)
+        tr = r[0]
+        r_lbl = f'{tr["KeyValue"]}-{tr["Name"]}-{tr["TimestepType"]}-{tr["Units"]}'
+        dfr = pd.DataFrame(r).set_index('dt')
+        dfr = dfr.rename({"Value": r_lbl}, axis=1)
+        dflist.append(dfr[r_lbl])
+
+    dff = pd.concat(dflist, axis=1)
+    split = dff.reset_index().to_dict(orient='split')
+    result = {"columns": split["columns"], "data": split["data"]}
+
+    log_mcp_call(
+        'get_timeseries_report_by_rddid_list', f'{len(result)} records',
+        kwargs={'model_id': model_id, 'rddid': rddid}
+    )
+    return _truncate_response(result, "records")
