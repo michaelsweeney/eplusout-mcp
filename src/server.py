@@ -13,8 +13,9 @@ mcp = FastMCP("eplus_outputs")
 
 DEFAULT_DIRECTORY = 'example-files'
 
-# Global state for tracking the current directory being used
+# Global state
 _current_directory: str | None = None
+_model_map = None
 
 
 def _get_current_directory() -> str:
@@ -24,6 +25,15 @@ def _get_current_directory() -> str:
             "No directory set. Call initialize_model_map(directory) first."
         )
     return _current_directory
+
+
+def _get_model_map():
+    """Get the current model map, raising if not initialized."""
+    if _model_map is None:
+        raise ValueError(
+            "Model map not initialized. Call initialize_model_map(directory) first."
+        )
+    return _model_map
 
 
 def _validate_directory(directory: str) -> str:
@@ -73,9 +83,11 @@ def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
         Status message confirming successful initialization.
     """
 
-    initialize_model_map_from_directory(directory)
+    global _model_map
+    _model_map = initialize_model_map_from_directory(directory)
     _set_current_directory(directory)
-    result = f"Model map initialized successfully for directory: {directory}"
+    model_count = len(_model_map.models)
+    result = f"Model map initialized successfully for directory: {directory} ({model_count} models found)"
     log_mcp_call('setup_model_map', result, kwargs={'directory': directory})
 
     return result
@@ -103,7 +115,7 @@ def get_available_models(directory: str = DEFAULT_DIRECTORY) -> dict:
         - files: Dictionary of available file paths (epjson, sql, html)
     """
 
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
 
     # Directly return list of attributes instead of converting through DataFrame
     result = [x.get_basic_attributes() for x in model_map.models]
@@ -127,7 +139,7 @@ def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
         JSON string containing the requested table data with columns and rows.
     """
 
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(id)
     table = model.html_data.get_table_by_tuple(query_tuple, asjson=True)
 
@@ -157,7 +169,7 @@ def get_rdd_file(id: str) -> list[str]:
         Plain text output of RDD file, which shows available output reports.
     """
 
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(id)
     err_file = model.get_associated_files_by_type('rdd')
     return err_file
@@ -176,7 +188,7 @@ def get_error_file(id: str) -> list[str]:
         Plain text output of EPlus error file
     """
 
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(id)
     err_file = model.get_associated_files_by_type('err')
     return err_file
@@ -201,7 +213,7 @@ def get_sql_available_hourlies(id: str) -> list | dict:
         - RDD IDs for use with get_timeseries_report_by_rddid
         - Units and key values for each variable
     """
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(id)
     result = model.sql_data.get_timeseries().availseries()
 
@@ -241,7 +253,7 @@ def search_epjson_objects(
 
 
     # Get the epJSON data
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(model_id)
     epjson_data = model.epjson_data.get_data()
 
@@ -513,7 +525,7 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: int | list[int]) -> Any
     if isinstance(rddid, int):
         rddid = [rddid]
 
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(model_id)
 
     resultlist = []
@@ -644,7 +656,7 @@ def search_html_tables_by_keyword(id: str, keywords: str | list[str], case_sensi
     if isinstance(keywords, str):
         keywords = [keywords]
 
-    model_map = initialize_model_map_from_directory(_get_current_directory())
+    model_map = _get_model_map()
     model = model_map.get_model_by_id(id)
 
     # Get all table data
