@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel
-from typing import List, Literal
+from typing import List
 from pathlib import Path
 import pandas as pd
 import logging
@@ -9,7 +9,7 @@ import glob as gb
 logger = logging.getLogger(__name__)
 from src.tools.func_html import get_all_table_data
 from src.tools.func_epjson import read_epjson
-from src.tools.func_sql import SqlTimeseries, SqlTables
+from src.tools.func_sql import SqlTimeseries
 
 
 """pydantic base model classes"""
@@ -98,30 +98,14 @@ class HtmlFileData(BaseModel):
 
 
 class SqlFileData(BaseModel):
-    """
-    Represents a SQL output file and provides access to its parsed SqlObj.
-
-    Attributes:
-        file_path (str): Path to the SQL file.
-        sql_obj (SqlObj | None): Cached SqlObj instance for this file.
-    """
-
+    """Represents a SQL output file and provides access to timeseries data."""
     file_path: str
     sql_timeseries: SqlTimeseries | None = None
-    sql_tables: SqlTables | None = None
 
     def get_timeseries(self):
-
         if self.sql_timeseries is None:
             self.sql_timeseries = SqlTimeseries(sql_file=self.file_path)
         return self.sql_timeseries
-
-    def get_tables(self):
-
-        if self.sql_tables is None:
-            self.sql_tables = SqlTables(sql_file=self.file_path)
-
-        return self.sql_tables
 
 
 
@@ -187,36 +171,6 @@ class ModelFileData(BaseModel):
             'stem': self.stem,
             'file_types': file_types
         }
-
-    def get_associated_files_by_type(self, ext: str, file_type: Literal['plain_text', 'csv'] = 'plain_text'):
-
-        # assumes there is one and only one epjson_data file. also assumes that it is a plain text object and returns lines.
-        # TODO this really doesnt belong here.
-
-        if self.epjson_data:
-            epjson_path = Path(self.epjson_data.file_path)
-            parent = epjson_path.parent
-            stem = epjson_path.stem
-            files_found = [x for x in parent.glob(f'{stem}*{ext}')]
-
-            if len(files_found) >= 1:
-                ftr = files_found[0]
-                if file_type == 'plain_text':
-                    with open(ftr, 'r') as f:
-                        return f.readlines()
-                elif file_type == 'csv':
-                    try:
-                        df = pd.read_csv(ftr, encoding='utf-8')
-                    except pd.errors.ParserError as e:
-                        with open(ftr, 'r') as f:
-                            logger.warning(f"csv parser error, returning as text: {ftr}")
-                            return f.readlines()
-                    return df
-                else:
-                    return f'error -- no implementation for type {file_type}'
-            else:
-                return f"error - no file found for type {ext}"
-        pass
 
 
 class ModelMap(BaseModel):
