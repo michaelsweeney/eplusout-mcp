@@ -3,7 +3,10 @@ from pydantic import BaseModel
 from typing import List, Literal
 from pathlib import Path
 import pandas as pd
+import logging
 import glob as gb
+
+logger = logging.getLogger(__name__)
 from src.tools.func_html import get_all_table_data
 from src.tools.func_epjson import read_epjson
 from src.tools.func_sql import SqlTimeseries, SqlTables
@@ -41,7 +44,7 @@ class HtmlFileData(BaseModel):
 
     def get_data(self) -> list:
         if self.data is None:
-            print(f'storing html data: {self.file_path}')
+            logger.debug(f'storing html data: {self.file_path}')
             self.data = get_all_table_data(self.file_path)
         return self.data
 
@@ -59,9 +62,9 @@ class HtmlFileData(BaseModel):
         ]
 
         if len(datafilter) == 0:
-            print(f'no tables found: {tabletuple}')
+            logger.warning(f'no tables found: {tabletuple}')
         elif len(datafilter) > 1:
-            print(f'multiple tables found: {tabletuple}')
+            logger.warning(f'multiple tables found: {tabletuple}')
 
         else:
 
@@ -207,7 +210,7 @@ class ModelFileData(BaseModel):
                         df = pd.read_csv(ftr, encoding='utf-8')
                     except pd.errors.ParserError as e:
                         with open(ftr, 'r') as f:
-                            print(f"csv parser error, returning as text: {ftr}")
+                            logger.warning(f"csv parser error, returning as text: {ftr}")
                             return f.readlines()
                     return df
                 else:

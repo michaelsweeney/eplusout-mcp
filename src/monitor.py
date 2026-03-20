@@ -1,6 +1,7 @@
 import tiktoken
 import time
 import json
+import logging
 from pathlib import Path
 from datetime import datetime
 from functools import wraps
@@ -97,13 +98,8 @@ def log_mcp_call(
             # Write as JSON line
             f.write(json.dumps(log_entry) + '\n')
 
-        # Also print to console for immediate feedback
-        # print(f"[MCP LOG] {function_name}: {duration:.3f}s, {input_tokens + output_tokens} tokens, {'✓' if success else '✗'}")
-
     except Exception as e:
-        # Fallback to console only if file logging fails
-        print(f"[MCP LOG ERROR] Failed to write log: {e}")
-        # print(f"[MCP LOG] {function_name}: {duration:.3f}s, {input_tokens + output_tokens} tokens, {'✓' if success else '✗'}")
+        logging.getLogger(__name__).error(f"Failed to write MCP log: {e}")
 
 
 def monitor_mcp_call(func):

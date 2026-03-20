@@ -133,7 +133,6 @@ See `tests/TESTING.md` for coverage details.
 ## Known Issues
 
 - `execute_pandas_on_*` and `execute_multiline_pandas_on_*` tools run user-provided code in a restricted `eval`/`exec` environment. The sandbox blocks common escape patterns but is not a full security boundary. Do not expose this server to untrusted users without additional sandboxing.
-- Some `print()` statements are used instead of the `logging` module for diagnostic output.
 
 ## Security
 

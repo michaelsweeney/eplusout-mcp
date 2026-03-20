@@ -1,8 +1,10 @@
 from html.parser import HTMLParser
 from typing import List, Optional, Dict
 import re
-from typing import List, Dict
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Pre-compiled regex patterns for better performance
 COMMENT_PATTERN = re.compile(r'<!--\s*(.*?)\s*-->', re.DOTALL)
@@ -25,10 +27,10 @@ def read_html_lines(html_file_path: str) -> list[str]:
         with open(html_file_path, 'r', encoding='utf-8') as file:
             lines = file.readlines()
     except FileNotFoundError:
-        print(f"Error: File not found.")
+        logger.error(f"File not found: {html_file_path}")
         return []
     except Exception as e:
-        print(f"Error reading file: Permission denied or invalid path")
+        logger.error(f"Error reading file: {html_file_path}")
         return []
 
     return lines
@@ -176,7 +178,7 @@ def find_table_at_line(lines: str, start_line: int) -> Optional[Dict]:
 
     # Get content from start_line onwards
     if start_line > len(lines):
-        print(f"Start line {start_line} exceeds file length ({len(lines)} lines)")
+        logger.warning(f"Start line {start_line} exceeds file length ({len(lines)} lines)")
         return None
 
     # Join lines from start_line onwards (convert to 0-based index)
@@ -186,7 +188,7 @@ def find_table_at_line(lines: str, start_line: int) -> Optional[Dict]:
     table_match = TABLE_PATTERN.search(content_from_line)
 
     if not table_match:
-        print(f"No table found starting from line {start_line}")
+        logger.warning(f"No table found starting from line {start_line}")
         return None
 
     # Extract the table HTML
@@ -204,7 +206,7 @@ def find_table_at_line(lines: str, start_line: int) -> Optional[Dict]:
     try:
         parser.feed(table_html)
     except Exception as e:
-        print(f"Error parsing table: {e}")
+        logger.error(f"Error parsing table: {e}")
         return None
 
     return {

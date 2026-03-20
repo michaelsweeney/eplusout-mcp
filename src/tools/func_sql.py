@@ -3,7 +3,10 @@ set of functions to open sql file, find table name, and parse it into a usable f
 '''
 
 import sqlite3
+import logging
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 from pydantic import BaseModel
 
@@ -421,9 +424,9 @@ class SqlTimeseries(BaseModel):
         if len(labelquery) == 1:
             labelquery = labelquery[0]
         elif len(labelquery) > 1:
-            print(f'warning - multiple found for {labelquery}')
+            logger.warning(f'multiple found for rddid {rddid}')
         else:
-            print(f'none found for {labelquery}')
+            logger.warning(f'no results found for rddid {rddid}')
 
 
         ReportDataDictionaryIndex, IsMeter, Type, IndexGroup, TimestepType, KeyValue, Name, ReportingFrequency, ScheduleName, Units = labelquery
