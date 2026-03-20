@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("eplus_outputs")
 
 DEFAULT_DIRECTORY = 'example-files'
+SCHEMA_DIR = Path(__file__).parent.parent / "schema"
 MAX_RESPONSE_CHARS = 10000
 DOCS_PATH = Path(__file__).parent / "CLAUDE.md"
 
@@ -22,6 +23,77 @@ def get_docs() -> str:
     """EnergyPlus MCP server usage instructions and reference links."""
     with open(DOCS_PATH) as f:
         return f.read()
+
+
+# Schema cache: {filepath: parsed_json}
+_schema_cache: dict[str, dict] = {}
+
+
+def _load_schema(version: str | None = None) -> tuple[dict, str]:
+    """Load and cache an EnergyPlus schema file. Returns (schema_properties, version_string)."""
+    if version:
+        schema_file = SCHEMA_DIR / f"Energy+.schema.{version}.epJSON"
+        if not schema_file.exists():
+            schema_file = SCHEMA_DIR / "Energy+.schema.epJSON"
+            if not schema_file.exists():
+                raise ValueError(
+                    f"No schema found for version '{version}'. "
+                    f"Place schema files in {SCHEMA_DIR}/ as 'Energy+.schema.epJSON' "
+                    f"or 'Energy+.schema.{{version}}.epJSON'."
+                )
+    else:
+        schema_file = SCHEMA_DIR / "Energy+.schema.epJSON"
+        if not schema_file.exists():
+            raise ValueError(f"No schema found at {schema_file}. Place an EnergyPlus schema file in {SCHEMA_DIR}/.")
+
+    key = str(schema_file)
+    if key not in _schema_cache:
+        with open(schema_file) as f:
+            _schema_cache[key] = json.load(f)
+
+    schema = _schema_cache[key]
+    # Detect version from the Version object's default
+    ver = "unknown"
+    ver_obj = schema.get("properties", {}).get("Version", {})
+    pat_props = ver_obj.get("patternProperties", {})
+    for v in pat_props.values():
+        ver = str(v.get("properties", {}).get("version_identifier", {}).get("default", "unknown"))
+    return schema.get("properties", {}), ver
+
+
+def _summarize_object_schema(obj_def: dict) -> dict:
+    """Extract a compact summary from a raw schema object definition."""
+    inner = {}
+    for v in obj_def.get("patternProperties", {}).values():
+        inner = v
+        break
+
+    fields = []
+    for fname, fdef in inner.get("properties", {}).items():
+        field = {"name": fname}
+        if "type" in fdef:
+            field["type"] = fdef["type"]
+        elif "anyOf" in fdef:
+            field["type"] = "/".join(t.get("type", "?") for t in fdef["anyOf"] if "type" in t)
+        if "units" in fdef:
+            field["units"] = fdef["units"]
+        if "enum" in fdef:
+            field["enum"] = fdef["enum"]
+        if "note" in fdef:
+            field["note"] = fdef["note"]
+        if "default" in fdef:
+            field["default"] = fdef["default"]
+        if "minimum" in fdef:
+            field["minimum"] = fdef["minimum"]
+        if "maximum" in fdef:
+            field["maximum"] = fdef["maximum"]
+        fields.append(field)
+
+    return {
+        "group": obj_def.get("group", ""),
+        "memo": obj_def.get("memo", ""),
+        "fields": fields,
+    }
 
 
 def _truncate_response(result, label: str = "result"):
@@ -189,3 +261,35 @@ def get_timeseries_report_by_rddid_list(model_id: str, rddid: int | list[int]) -
         kwargs={'model_id': model_id, 'rddid': rddid}
     )
     return _truncate_response(result, "records")
+
+
+@mcp.tool()
+def get_eplus_object_schema(object_type: str, version: str | None = None) -> dict:
+    """Look up an EnergyPlus object type's field definitions, types, units, and constraints from the schema. Use exact object type names (e.g., 'Coil:Cooling:WaterToAirHeatPump:EquationFit')."""
+
+    properties, schema_ver = _load_schema(version)
+
+    if object_type not in properties:
+        # Try case-insensitive match
+        match = next((k for k in properties if k.lower() == object_type.lower()), None)
+        if match:
+            object_type = match
+        else:
+            # Return suggestions
+            query = object_type.lower()
+            suggestions = [k for k in properties if query in k.lower()][:20]
+            return {
+                "error": f"Object type '{object_type}' not found in schema (v{schema_ver})",
+                "suggestions": suggestions,
+                "total_object_types": len(properties),
+            }
+
+    summary = _summarize_object_schema(properties[object_type])
+    result = {
+        "object_type": object_type,
+        "schema_version": schema_ver,
+        **summary,
+    }
+
+    log_mcp_call('get_eplus_object_schema', f'{len(summary["fields"])} fields', kwargs={'object_type': object_type, 'version': version})
+    return _truncate_response(result, "fields")

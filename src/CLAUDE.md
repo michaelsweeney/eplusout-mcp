@@ -14,6 +14,9 @@
 - `get_sql_available_hourlies(id)` — List available hourly variables with RDD IDs
 - `get_timeseries_report_by_rddid_list(model_id, rddid)` — Extract timeseries data by RDD ID(s)
 
+### Schema Reference
+- `get_eplus_object_schema(object_type, version?)` — Look up field definitions for any EnergyPlus object type
+
 ## Workflow
 
 1. `initialize_model_map(directory)` — scan for models
@@ -51,7 +54,18 @@ Replace `{major}-{minor}` with the EnergyPlus version (e.g., `25-2`, `24-1`, `23
 - `group-surface-construction-elements.html` — Construction/material objects
 - `group-thermal-zones-and-surfaces.html` — Zone and surface objects
 
-To look up a specific EnergyPlus object type, use `WebFetch` on the appropriate group page URL.
+To look up a specific EnergyPlus object type, use `get_eplus_object_schema(object_type)` for field definitions from the local schema, or `WebFetch` on the appropriate group page URL for narrative documentation.
+
+## Schema Versioning
+
+The `schema/` directory contains EnergyPlus JSON schema files. The default file is `Energy+.schema.epJSON`.
+
+To support multiple versions, name files as `Energy+.schema.{version}.epJSON`:
+- `schema/Energy+.schema.epJSON` — default (currently v24.1)
+- `schema/Energy+.schema.25.2.epJSON` — version 25.2
+- `schema/Energy+.schema.23.2.epJSON` — version 23.2
+
+Schema files ship inside EnergyPlus installers from [NREL/EnergyPlus releases](https://github.com/NREL/EnergyPlus/releases). Extract `Energy+.schema.epJSON` from the installer archive and rename with the version suffix.
 
 ## HTML Keyword Categories
 
