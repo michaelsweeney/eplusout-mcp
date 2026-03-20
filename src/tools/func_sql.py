@@ -387,7 +387,7 @@ class SqlTimeseries(BaseModel):
         df = self._df_query("SELECT * FROM ReportDataDictionary WHERE ReportingFrequency = 'Hourly'")
         df.columns = rddcols
 
-        return df.to_dict(orient='records')
+        return df[['ReportDataDictionaryIndex', 'Name', 'KeyValue', 'Units']].to_dict(orient='records')
 
     def queryseries(self, filterquery):
         """

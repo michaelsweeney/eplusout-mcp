@@ -13,9 +13,7 @@ def test_availseries_structure(atlanta_model):
     ts = atlanta_model.sql_data.get_timeseries()
     avail = ts.availseries()
     expected_keys = {
-        "ReportDataDictionaryIndex", "IsMeter", "Type", "IndexGroup",
-        "TimestepType", "KeyValue", "Name", "ReportingFrequency",
-        "ScheduleName", "Units"
+        "ReportDataDictionaryIndex", "Name", "KeyValue", "Units"
     }
     assert set(avail[0].keys()) == expected_keys
 

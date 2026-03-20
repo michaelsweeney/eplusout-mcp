@@ -351,13 +351,7 @@ def search_epjson_objects(
 
     result = {
         "search_results": results,
-        "search_criteria": {
-            "object_type": object_type,
-            "object_name": object_name,
-            "search_pattern": search_pattern,
-            "case_sensitive": case_sensitive
-        },
-        "search_stats": search_stats
+        "matches_found": search_stats["matches_found"]
     }
 
     log_mcp_call(
@@ -408,15 +402,7 @@ def get_object_properties(
     if not search_result["search_results"]:
         return {"error": f"Object '{object_name}' of type '{object_type}' not found"}
 
-    obj_data = search_result["search_results"][object_type][object_name]
-
-    result = {
-        "object_type": object_type,
-        "object_name": object_name,
-        "properties": obj_data,
-        "property_count": len(obj_data),
-        "model_id": model_id
-    }
+    result = search_result["search_results"][object_type][object_name]
 
     log_mcp_call(
         'get_object_properties',
@@ -425,11 +411,9 @@ def get_object_properties(
             'model_id': model_id,
             'object_type': object_type,
             'object_name': object_name,
-
         }
     )
 
-    # Add metadata about the object
     return result
 
 
@@ -462,12 +446,9 @@ def list_objects_by_type(model_id: str, object_type: str) -> dict:
 
     objects = search_result["search_results"][object_type]
 
-
     result = {
-        "object_type": object_type,
         "object_count": len(objects),
-        "objects": objects,
-        "model_id": model_id
+        "object_names": list(objects.keys()),
     }
     log_mcp_call(
         'list_objects_by_type',
@@ -509,19 +490,12 @@ def search_related_objects(model_id: str, search_pattern: str) -> dict:
 
     for obj_type, objects in search_result["search_results"].items():
         if objects:
-            related_objects[obj_type] = {
-                "count": len(objects),
-                "objects": list(objects.keys()),
-                "details": objects
-            }
+            related_objects[obj_type] = list(objects.keys())
             total_matches += len(objects)
 
-
     result = {
-        "search_pattern": search_pattern,
         "total_matches": total_matches,
         "related_objects": related_objects,
-        "model_id": model_id
     }
 
     log_mcp_call(
@@ -739,11 +713,8 @@ def search_html_tables_by_keyword(id: str, keywords: str | list[str], case_sensi
                     matching_tables.append(table_info)
 
     result = {
-        "matching_tables": matching_tables,
-        "search_keywords": keywords,
         "total_matches": len(matching_tables),
-        "search_stats": search_stats,
-        "model_id": id
+        "matching_tables": matching_tables,
     }
 
     log_mcp_call(
