@@ -4,12 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**EnergyPlus MCP Server** - A Model Context Protocol (MCP) server that provides comprehensive access to EnergyPlus building energy simulation results. The server enables users to:
+**EnergyPlus MCP Server** — An MCP server for accessing EnergyPlus building energy simulation results. The server enables users to:
 - Discover and catalog EnergyPlus models (`.epJSON`, `.sql`, `.htm` files)
-- Extract and analyze timeseries data from SQL databases
+- Extract timeseries data from SQL databases
 - Search and query HTML summary reports
 - Explore building model objects and properties via epJSON files
-- Execute pandas-based data analysis on results
 
 The server is filename-agnostic and automatically discovers models by directory structure and filename stem.
 
@@ -18,52 +17,39 @@ The server is filename-agnostic and automatically discovers models by directory 
 ### Installation
 
 ```bash
-# Install dependencies using uv (project uses Python 3.13+)
 uv sync
-
-# Verify Python version
-python --version  # Should be 3.13+
 ```
 
 ### Running the Server
 
 ```bash
-# Start the MCP server (uses stdio transport)
 uv run main.py
-
-# See README.md "Quickstart" section for Claude Desktop configuration
 ```
+
+See README.md for Claude Desktop and Claude Code configuration.
 
 ## Architecture Overview
 
 ### Core Components
 
-**Model Discovery & Caching** (`src/model_data.py`):
-- `ModelMap` - Central class managing model catalog and metadata
-- Automatically discovers models by scanning directories recursively
+**Model Discovery** (`src/model_data.py`):
+- `ModelMap` — Central class managing model catalog and metadata
+- Discovers models by scanning directories recursively
 - Groups files by directory and filename stem (e.g., `models/run1/eplusout`)
-- Caches model metadata in pickle format for fast access
 
 **File Handlers**:
-- `src/tools/func_sql.py` - SQLite database access for timeseries and tabular data
-  - `SqlTimeseries` - Extracts hourly timeseries data by RDD ID
-  - `SqlTables` - Extracts summary tables from SQL databases
-- `src/tools/func_html.py` - HTML report parsing via BeautifulSoup
+- `src/tools/func_sql.py` — SQLite database access for timeseries and tabular data
+  - `SqlTimeseries` — Extracts hourly timeseries data by RDD ID
+  - `SqlTables` — Extracts summary tables from SQL databases
+- `src/tools/func_html.py` — HTML report parsing
   - Extracts tabular data from HTML summary reports
   - Supports keyword-based table search
-- `src/tools/func_epjson.py` - epJSON model file access
+- `src/tools/func_epjson.py` — epJSON model file access
   - Reads and searches building component definitions
-
-**Data Processing**:
-- `src/dataloader.py` - Pandas integration for data queries
-  - `execute_pandas_query()` - Single-line pandas expressions
-  - `execute_multiline_pandas_query()` - Multi-line pandas code
-  - Safe execution environment (restricted builtins)
-  - Result formatting and truncation for token management
 
 **MCP Server** (`src/server.py`):
 - FastMCP-based server exposing tools to Claude
-- 15+ tools covering model management, HTML analysis, timeseries extraction, epJSON exploration
+- Tools cover model management, HTML analysis, timeseries extraction, epJSON exploration
 
 **Monitoring & Logging** (`src/monitor.py`):
 - Token counting via tiktoken
@@ -76,42 +62,30 @@ uv run main.py
 - Example: `eplus_files/run1/eplusout`
 - Allows multiple file types (.epJSON, .sql, .htm) to be grouped as one model
 
-**Caching Strategy**:
-- Model map cached in `mcp_cache/modelmap.pickle`
-- Reduces repeated filesystem scans
-- Expires and refreshes on initialization
-
-**Safe Pandas Execution**:
-- Restricted execution environment prevents dangerous operations
-- Only allows specific builtins and pandas/numpy operations
-- Useful for untrusted data analysis workflows
-
 ## Directory Structure
 
 ```
-mcp-eplus-outputs/
-├── main.py                      # Entry point - runs MCP server
+eplusout-mcp/
+├── main.py                      # Entry point
 ├── README.md                    # User-facing documentation
-├── pyproject.toml              # Project metadata and dependencies
-├── uv.lock                     # Dependency lock file
+├── pyproject.toml               # Project metadata and dependencies
+├── uv.lock                      # Dependency lock file
 │
 ├── src/                         # Main application code
-│   ├── __init__.py             # Package initialization (cache paths)
-│   ├── server.py               # MCP server definition (15+ tools)
-│   ├── model_data.py           # Model discovery and caching
-│   ├── dataloader.py           # Pandas query execution
-│   ├── monitor.py              # Logging and token tracking
-│   ├── CLAUDE.md               # User documentation (tool reference)
+│   ├── __init__.py              # Package initialization
+│   ├── server.py                # MCP server definition (tools)
+│   ├── model_data.py            # Model discovery
+│   ├── monitor.py               # Logging and token tracking
+│   ├── CLAUDE.md                # User-facing tool reference (served by get_usage_instructions)
 │   │
-│   ├── tools/                  # File format handlers
-│   │   ├── func_sql.py        # SQL database access
-│   │   ├── func_html.py       # HTML report parsing
-│   │   └── func_epjson.py     # epJSON model access
+│   ├── tools/                   # File format handlers
+│   │   ├── func_sql.py          # SQL database access
+│   │   ├── func_html.py         # HTML report parsing
+│   │   └── func_epjson.py       # epJSON model access
 │   │
-│   └── utils/                  # Utilities
-│       ├── dtypes.py          # Data type definitions
-│       ├── helpers.py         # Helper functions
-│       └── logger.py          # Logging setup
+│   └── utils/                   # Utilities
+│       ├── dtypes.py            # Data type definitions
+│       └── helpers.py           # Helper functions
 │
 ├── tests/                       # Pytest test suite
 ├── example-files/               # Sample EnergyPlus models for testing
@@ -125,60 +99,31 @@ mcp-eplus-outputs/
 ### Testing
 
 ```bash
-# Run all tests
 uv run pytest
-
-# Run a specific test file
 uv run pytest tests/test_sql_timeseries.py
 ```
-
-See `tests/TESTING.md` for test coverage details.
 
 ### Code Structure Tips
 
 - **Adding new tools**: Edit `src/server.py` and add `@mcp.tool()` decorated functions
 - **Adding file format support**: Create new handler in `src/tools/` and integrate with `ModelMap` in `model_data.py`
 - **Modifying data extraction**: Edit corresponding file handler (`func_sql.py`, `func_html.py`, `func_epjson.py`)
-- **Changing logging behavior**: Modify `src/monitor.py` (token estimation) or `src/monitor.py` (logging)
 
 ### Dependencies
 
 Key dependencies (see `pyproject.toml`):
-- **fastmcp** - FastMCP server framework
-- **pandas, numpy** - Data manipulation
-- **bs4 (BeautifulSoup)** - HTML parsing
-- **lxml** - XML/HTML processing
-- **tiktoken** - Token counting for monitoring
-- **pyarrow** - Arrow data format support
-- **sqlite3** (built-in) - Database access
-
-### Key Files to Understand
-
-1. **`src/server.py`** (31KB) - Read first to understand available tools
-2. **`src/model_data.py`** (23KB) - Understand model discovery and caching
-3. **`src/tools/func_sql.py`** (17KB) - SQL data extraction patterns
-4. **`src/tools/func_html.py`** (8KB) - HTML parsing approach
-5. **`src/dataloader.py`** (8KB) - Pandas integration and result formatting
+- **fastmcp** — MCP server framework
+- **pandas, numpy** — Data manipulation
+- **tiktoken** — Token counting for monitoring
+- **sqlite3** (built-in) — Database access
 
 ## Key Concepts
 
 ### RDD ID
 
-Report Data Dictionary (RDD) ID - Unique identifier for timeseries variables in the SQL database. Used to extract specific hourly data like "Facility Total Electric Demand Power".
-
-## Deployment & Configuration
-
-See README.md "Quickstart: Setup with Claude Desktop" for installation and Claude Desktop config.
-
-### Cache Management
-
-- **Location**: `mcp_cache/modelmap.pickle`
-- **Refresh**: Call `initialize_model_map()` to rescan and refresh
-- **Size**: Small (pickled model metadata only, not data files)
+Report Data Dictionary (RDD) ID — Unique identifier for timeseries variables in the SQL database. Used to extract specific hourly data like "Facility Total Electric Demand Power".
 
 ## Notes for Future Developers
 
-- The server is designed for read-only access to simulation results (no modifications to EnergyPlus files)
-- All user code execution (pandas queries) happens in a restricted, safe environment
-- The project was recently cleaned up (see `ai-docs/CLEANUP_SUMMARY.txt`) - extraneous analysis scripts were removed
-- The existing `src/CLAUDE.md` is user-facing documentation for MCP tool usage, not developer docs
+- The server is read-only — it does not modify EnergyPlus files
+- `src/CLAUDE.md` is user-facing tool documentation, not developer docs — it is served by the `get_usage_instructions()` tool
