@@ -578,7 +578,7 @@ def get_usage_instructions() -> str:
 
 
 @mcp.tool()
-def search_html_tables_by_keyword(id: str, keywords: list[str], case_sensitive: bool = False) -> dict:
+def search_html_tables_by_keyword(id: str, keywords: str | list[str], case_sensitive: bool = False) -> dict:
     """
     Search for HTML tables containing specific keywords in their names.
 
@@ -588,7 +588,7 @@ def search_html_tables_by_keyword(id: str, keywords: list[str], case_sensitive: 
 
     Args:
         id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        keywords: List of keywords to search for (e.g., ['cooling', 'coil', 'capacity'])
+        keywords: Keyword or list of keywords to search for (e.g., 'cooling' or ['cooling', 'coil'])
         case_sensitive: Whether to perform case-sensitive search (default: False)
 
     Returns:
@@ -638,6 +638,9 @@ def search_html_tables_by_keyword(id: str, keywords: list[str], case_sensitive: 
         ['lighting', 'electric equipment', 'gas equipment', 'occupancy',
          'schedule', 'internal load', 'plug load']
     """
+
+    if isinstance(keywords, str):
+        keywords = [keywords]
 
     model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
