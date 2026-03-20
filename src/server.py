@@ -5,31 +5,30 @@ import logging
 from typing import Any
 from mcp.server.fastmcp import FastMCP
 from src.monitor import log_mcp_call
-from src import EPLUS_RUNS_DIRECTORY
 from src.model_data import initialize_model_map_from_directory
 
 logger = logging.getLogger(__name__)
 
 mcp = FastMCP("eplus_outputs")
 
-DEFAULT_DIRECTORY = 'eplus_files/prescriptive_variability_sample'
-ERROR_CHECK_DIRECTORY = 'eplus_files/forced_error/error'
+DEFAULT_DIRECTORY = 'example-files'
 
 # Global state for tracking the current directory being used
-# This allows initialize_model_map() to set the directory for all subsequent tool calls
-_current_directory = str(EPLUS_RUNS_DIRECTORY)
+_current_directory: str | None = None
 
 
 def _get_current_directory() -> str:
     """Get the currently active directory for model operations."""
-    global _current_directory
+    if _current_directory is None:
+        raise ValueError(
+            "No directory set. Call initialize_model_map(directory) first."
+        )
     return _current_directory
 
 
 def _validate_directory(directory: str) -> str:
     """
-    Validate that directory path is within EPLUS_RUNS_DIRECTORY.
-    Prevents path traversal attacks.
+    Validate that a directory path exists and is a directory.
 
     Args:
         directory: Directory path to validate
@@ -38,17 +37,14 @@ def _validate_directory(directory: str) -> str:
         Absolute path as string if valid
 
     Raises:
-        ValueError: If directory is outside EPLUS_RUNS_DIRECTORY
+        ValueError: If path does not exist or is not a directory
     """
-    target_path = Path(directory).absolute()
-    base_path = Path(EPLUS_RUNS_DIRECTORY).absolute()
+    target_path = Path(directory).resolve()
 
-    try:
-        target_path.relative_to(base_path)
-    except ValueError:
-        raise ValueError(
-            f"Directory must be within {base_path}, got {target_path}"
-        )
+    if not target_path.exists():
+        raise ValueError(f"Directory does not exist: {target_path}")
+    if not target_path.is_dir():
+        raise ValueError(f"Path is not a directory: {target_path}")
 
     return str(target_path)
 
