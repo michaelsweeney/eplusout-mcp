@@ -21,7 +21,29 @@
       "Bash(sed:*)",
       "Bash(uv run:*)",
       "Bash(uv sync:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Read(//usr/local/**)",
+      "Read(//opt/**)",
+      "Bash(snap list:*)",
+      "Bash(flatpak list:*)",
+      "Bash(EP_DIR=/home/msweeney/energyplus/EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu24.04-x86_64)",
+      "Read(//home/msweeney/repos/eplusout-mcp/$EP_DIR/**)",
+      "Bash(find /home/msweeney -maxdepth 4 -name *.epw)",
+      "Bash(curl -sL -o \"USA_NM_Albuquerque.Intl.Sunport.723650_TMY3.epw\" \"https://raw.githubusercontent.com/NREL/EnergyPlus/develop/weather/USA_NM_Albuquerque.Intl.Sunport.723650_TMY3.epw\")",
+      "Bash(curl -sL -o \"USA_FL_Miami.Intl.AP.722020_TMY3.epw\" \"https://raw.githubusercontent.com/NREL/EnergyPlus/develop/weather/USA_FL_Miami.Intl.AP.722020_TMY3.epw\")",
+      "Bash(curl -sL -o \"USA_TX_El.Paso.Intl.AP.722700_TMY3.epw\" \"https://raw.githubusercontent.com/NREL/EnergyPlus/develop/weather/USA_TX_El.Paso.Intl.AP.722700_TMY3.epw\")",
+      "Bash(curl -sL -o \"USA_MN_International.Falls.Intl.AP.727470_TMY3.epw\" \"https://raw.githubusercontent.com/NREL/EnergyPlus/develop/weather/USA_MN_International.Falls.Intl.AP.727470_TMY3.epw\")",
+      "WebFetch(domain:api.github.com)",
+      "Bash(curl -sL -o \"USA_NM_Albuquerque.Intl.Sunport.723650_TMY3.epw\" \"https://energyplus-weather.s3.amazonaws.com/north_and_central_america_wmo_region_4/USA/NM/USA_NM_Albuquerque.Intl.Sunport.723650_TMY3/USA_NM_Albuquerque.Intl.Sunport.723650_TMY3.epw\")",
+      "Bash(curl -sL -o \"USA_TX_El.Paso.Intl.AP.722700_TMY3.epw\" \"https://energyplus-weather.s3.amazonaws.com/north_and_central_america_wmo_region_4/USA/TX/USA_TX_El.Paso.Intl.AP.722700_TMY3/USA_TX_El.Paso.Intl.AP.722700_TMY3.epw\")",
+      "Bash(curl -sL -o \"USA_MN_International.Falls.Intl.AP.727470_TMY3.epw\" \"https://energyplus-weather.s3.amazonaws.com/north_and_central_america_wmo_region_4/USA/MN/USA_MN_International.Falls.Intl.AP.727470_TMY3/USA_MN_International.Falls.Intl.AP.727470_TMY3.epw\")",
+      "Bash(curl -sL -o \"USA_NM_Albuquerque.Intl.Sunport.723650_TMY3.epw\" \"https://energyplus-weather.s3.amazonaws.com/north_and_central_america_wmo_region_4/USA/NM/USA_NM_Albuquerque.Intl.Sunport.723650_TMY3/USA_NM_Albuquerque.Intl.Sunport.723650_TMY3.epw\" -v)",
+      "Bash(curl -sL \"https://energyplus-weather.s3.amazonaws.com/?prefix=north_and_central_america_wmo_region_4/USA/NM/&delimiter=/\")",
+      "Bash(curl -sL -o \"USA_NM_Albuquerque.Intl.AP.723650_TMY3.epw\" \"https://energyplus-weather.s3.amazonaws.com/north_and_central_america_wmo_region_4/USA/NM/USA_NM_Albuquerque.Intl.AP.723650_TMY3/USA_NM_Albuquerque.Intl.AP.723650_TMY3.epw\")",
+      "Bash(EP=/home/msweeney/energyplus/EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu24.04-x86_64/energyplus)",
+      "Bash(PT=/home/msweeney/Documents/prototype-testing)",
+      "Bash(W=$PT/weather)",
+      "Bash($EP --version)"
     ]
   }
 }
