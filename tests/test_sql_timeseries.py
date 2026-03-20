@@ -1,7 +1,6 @@
 """Tests for SQL timeseries data extraction."""
 
 import pandas as pd
-from src.dataloader import execute_pandas_query
 
 
 def test_availseries_count(atlanta_model):
@@ -58,5 +57,4 @@ def test_pandas_on_timeseries(atlanta_model):
     ts = atlanta_model.sql_data.get_timeseries()
     series = ts.getseries_by_record_id(179)
     df = pd.DataFrame(series)
-    result = execute_pandas_query(df, "df['Value'].mean()")
-    assert "Value" not in result or float(result) > 0
+    assert df['Value'].mean() > 0

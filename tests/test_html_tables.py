@@ -1,7 +1,6 @@
 """Tests for HTML table retrieval and search."""
 
 import pandas as pd
-from src.dataloader import execute_pandas_query
 
 
 def test_report_names_count(atlanta_model):
@@ -52,5 +51,4 @@ def test_pandas_on_html_table(atlanta_model):
         ("Entire Facility", "Annual Building Utility Performance Summary", "Site and Source Energy")
     )
     df = pd.DataFrame(result)
-    query_result = execute_pandas_query(df, "len(df)")
-    assert "4" in query_result
+    assert len(df) == 4

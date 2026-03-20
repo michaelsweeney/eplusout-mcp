@@ -8,7 +8,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that p
 - **HTML Report Analysis**: Search and extract tabular data from EnergyPlus HTML summary reports
 - **Timeseries Extraction**: Query hourly simulation data from SQL output databases
 - **epJSON Exploration**: Search and inspect building model objects and properties
-- **Pandas Integration**: Execute pandas queries directly on extracted data
+- **Data Extraction**: Extract timeseries and tabular data for analysis in your own tools
 
 ## Quickstart
 
@@ -82,14 +82,10 @@ The server groups files by directory and filename stem. For example, `run1/eplus
 ### HTML Tables
 - `search_html_tables_by_keyword()` — Find tables by keyword (e.g., `['cooling', 'sizing']`)
 - `get_html_table_by_tuple()` — Retrieve a specific table by `(report_for, report_name, table_name)`
-- `execute_pandas_on_html_table()` — Run a pandas expression on a table
-- `execute_multiline_pandas_on_html_table()` — Run multi-line pandas code on a table
 
 ### Timeseries
 - `get_sql_available_hourlies()` — List available hourly variables with RDD IDs
 - `get_timeseries_report_by_rddid_list()` — Extract timeseries data by RDD ID
-- `execute_pandas_on_timeseries()` — Run a pandas expression on timeseries data
-- `execute_multiline_pandas_on_timeseries()` — Run multi-line pandas code on timeseries data
 
 ### epJSON
 - `search_epjson_objects()` — Search building model objects by type, name, or pattern
@@ -132,7 +128,7 @@ See `tests/TESTING.md` for coverage details.
 
 ## Known Issues
 
-- `execute_pandas_on_*` and `execute_multiline_pandas_on_*` tools run user-provided code in a restricted `eval`/`exec` environment. The sandbox blocks common escape patterns but is not a full security boundary. Do not expose this server to untrusted users without additional sandboxing.
+None currently tracked.
 
 ## Security
 
