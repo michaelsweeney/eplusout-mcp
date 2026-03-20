@@ -1,5 +1,5 @@
 from html.parser import HTMLParser
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict
 import re
 from typing import List, Dict
 import os

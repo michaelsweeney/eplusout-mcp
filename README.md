@@ -1,48 +1,31 @@
 # EnergyPlus MCP Server
 
-## Overview
-
-This Model Context Protocol (MCP) server provides comprehensive access to EnergyPlus building energy simulation results through a rich set of tools for discovering, analyzing, and extracting data from EnergyPlus model files. The server includes advanced features like pandas-based data analysis, keyword-based table searching, and comprehensive logging with token consumption tracking.
+A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that provides access to EnergyPlus building energy simulation results. Connect it to Claude (Desktop or Code) to discover, query, and analyze EnergyPlus output files using natural language.
 
 ## Key Features
 
-- **Comprehensive Data Access**: Read epJSON input files, SQL result databases, and HTML summary reports
-- **Advanced Search Capabilities**: Search HTML tables by keywords, find related epJSON objects, and explore model components
-- **Pandas Integration**: Execute pandas queries directly on timeseries and tabular data
-- **Logging & Monitoring**: Built-in token consumption tracking and function call monitoring
-- **Flexible Model Discovery**: Automatic model cataloging and metadata extraction
+- **Model Discovery**: Automatically scans directories for `.epJSON`, `.sql`, and `.htm` files, grouping them by filename stem
+- **HTML Report Analysis**: Search and extract tabular data from EnergyPlus HTML summary reports
+- **Timeseries Extraction**: Query hourly simulation data from SQL output databases
+- **epJSON Exploration**: Search and inspect building model objects and properties
+- **Pandas Integration**: Execute pandas queries directly on extracted data
 
-## Quickstart: Setup with Claude Desktop
+## Quickstart
 
 ### Prerequisites
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
-- [Claude Desktop](https://claude.ai/download)
+- [Claude Desktop](https://claude.ai/download) or [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
 
-### Step 1: Clone the repository
-
-```bash
-git clone https://github.com/your-org/mcp-eplus-outputs.git
-cd mcp-eplus-outputs
-```
-
-### Step 2: Install dependencies
+### Install
 
 ```bash
+git clone https://github.com/michaelsweeney/eplusout-mcp.git
+cd eplusout-mcp
 uv sync
 ```
 
-This installs Python 3.13+ and all required packages automatically.
-
-### Step 3: Verify the server runs
-
-```bash
-uv run main.py
-```
-
-You should see the server start without errors. Press `Ctrl+C` to stop it.
-
-### Step 4: Configure Claude Desktop
+### Configure Claude Desktop
 
 Open your Claude Desktop config file:
 
@@ -52,266 +35,106 @@ Open your Claude Desktop config file:
 | Windows | `%APPDATA%\Claude\claude_desktop_config.json`                               |
 | Linux   | `~/.config/Claude/claude_desktop_config.json`                               |
 
-Add the MCP server entry (create the file if it doesn't exist). Replace the path with the **absolute path** to where you cloned the repo:
-
-**macOS / Linux:**
+Add the server entry (replace the path with your actual clone location):
 
 ```json
 {
   "mcpServers": {
     "mcp_eplus_outputs": {
       "command": "uv",
-      "args": ["--directory", "/Users/yourname/code/mcp-eplus-outputs", "run", "main.py"]
+      "args": ["--directory", "/path/to/eplusout-mcp", "run", "main.py"]
     }
   }
 }
 ```
 
-**Windows:**
+Restart Claude Desktop. The server will appear in the tools menu.
 
-```json
-{
-  "mcpServers": {
-    "mcp_eplus_outputs": {
-      "command": "uv",
-      "args": ["--directory", "C:/Users/yourname/code/mcp-eplus-outputs", "run", "main.py"]
-    }
-  }
-}
+### Configure Claude Code
+
+```bash
+claude mcp add eplus_outputs -- uv --directory /path/to/eplusout-mcp run main.py
 ```
 
-> **Note:** Use forward slashes (`/`) in the path, even on Windows.
+### Verify
 
-### Step 5: Restart Claude Desktop
+Ask Claude:
 
-Quit and reopen Claude Desktop. The MCP server will appear in the tools menu (hammer icon). You can verify the connection by asking Claude:
-
-> "Initialize the EnergyPlus model map and show me available models."
-
-### Step 6: Point it at your simulation results
-
-Tell Claude to scan any directory containing EnergyPlus output files (`.epJSON`, `.sql`, `.table.htm`) — this can be your simulation output directory directly, or a separate folder where you've copied files you want to analyze:
-
-> "Initialize the model map with directory `path/to/my/simulation_outputs`"
-
-The server will automatically discover and group files by directory and filename stem.
+> "Initialize the EnergyPlus model map with directory `example-files` and show me available models."
 
 ## File Structure
 
-Each EnergyPlus model consists of three main file types:
+Each EnergyPlus model consists of three file types:
 
-- **`.epJSON`** - Input model definition (building geometry, materials, HVAC systems, schedules)
-- **`.sql`** - Simulation results database (hourly timeseries data, summary tables)
-- **`.table.htm`** - HTML summary reports (tabular summaries of results)
+- **`.epJSON`** — Input model definition (geometry, materials, HVAC, schedules)
+- **`.sql`** — Simulation results database (hourly timeseries, summary tables)
+- **`.table.htm`** — HTML summary reports (tabular result summaries)
 
-## Model Discovery
-
-The server automatically discovers models by scanning for `.epJSON`, `.sql`, and `.htm` files in the specified directory. Models are identified by their **directory location and filename stem** (filename without extension), making the server **completely filename-agnostic**. Files can use any naming convention.
-
-Examples of valid model filenames:
-- `ASHRAE901_HotelLarge_STD2025_Buffalo_SkipEC_gshp.epJSON`
-- `my_building_model_v1.sql`
-- `simple_model.htm`
-
-All are discovered and grouped correctly regardless of naming pattern.
-
-## Example Files
-
-The `example-files/` directory contains sample EnergyPlus output files for testing and exploration. See `example-files/about.md` for provenance.
-
-Included models:
-- `ASHRAE901_HotelLarge_STD2013_Atlanta` — Large hotel, Atlanta climate
-- `ASHRAE901_HotelLarge_STD2013_Buffalo` — Large hotel, Buffalo climate
-
-Each includes `.epJSON`, `.sql`, and `.table.htm` files along with associated simulation outputs.
+The server groups files by directory and filename stem. For example, `run1/eplusout.sql` and `run1/eplusout.epJSON` are treated as the same model with ID `run1/eplusout`.
 
 ## Available Tools
 
-### Core Model Management
+### Model Management
+- `initialize_model_map()` — Scan a directory and build the model catalog
+- `get_available_models()` — List all discovered models with metadata
+- `get_usage_instructions()` — Get detailed usage documentation
 
-- `initialize_model_map()` - Initialize model catalog
-- `get_available_models()` - List all available models with metadata
-- `get_usage_instructions()` - Get comprehensive usage documentation
+### HTML Tables
+- `search_html_tables_by_keyword()` — Find tables by keyword (e.g., `['cooling', 'sizing']`)
+- `get_html_table_by_tuple()` — Retrieve a specific table by `(report_for, report_name, table_name)`
+- `execute_pandas_on_html_table()` — Run a pandas expression on a table
+- `execute_multiline_pandas_on_html_table()` — Run multi-line pandas code on a table
 
-### HTML Table Analysis
+### Timeseries
+- `get_sql_available_hourlies()` — List available hourly variables with RDD IDs
+- `get_timeseries_report_by_rddid_list()` — Extract timeseries data by RDD ID
+- `execute_pandas_on_timeseries()` — Run a pandas expression on timeseries data
+- `execute_multiline_pandas_on_timeseries()` — Run multi-line pandas code on timeseries data
 
-- `get_html_table_by_tuple()` - Retrieve specific HTML tables
-- `search_html_tables_by_keyword()` - Find tables by keyword search
-- `execute_pandas_on_html_table()` - Run pandas queries on HTML tables
-- `execute_multiline_pandas_on_html_table()` - Run complex pandas code on HTML tables
+### epJSON
+- `search_epjson_objects()` — Search building model objects by type, name, or pattern
+- `get_object_properties()` — Get all properties of a specific object
+- `list_objects_by_type()` — List all objects of a given EnergyPlus type
+- `search_related_objects()` — Find objects related to a component or zone
 
-### Timeseries Data Analysis
+### Debugging
+- `get_error_file()` — Read the EnergyPlus error file for a model
+- `get_rdd_file()` — Read the RDD (Report Data Dictionary) file
 
-- `get_sql_available_hourlies()` - List available hourly variables
-- `get_timeseries_report_by_rddid()` - Extract timeseries data by RDD ID
-- `execute_pandas_on_timeseries()` - Run pandas queries on timeseries data
-- `execute_multiline_pandas_on_timeseries()` - Run complex pandas code on timeseries data
+## Usage
 
-### epJSON Model Exploration
+A typical workflow:
 
-- `search_epjson_objects()` - Search building model objects
-- `get_object_properties()` - Get detailed object properties
-- `list_objects_by_type()` - List all objects of specific type
-- `search_related_objects()` - Find related objects by pattern
-
-### General Data Processing
-
-- `execute_query()` - Execute pandas queries on cached data
-- `execute_multiline_query()` - Execute multi-line pandas code on cached data
-
-## Usage Examples
-
-Once connected via Claude Desktop, here's a typical workflow using the MCP tools:
-
-### 1. Initialize and discover models
-
-```python
-initialize_model_map(directory='example-files')
-models = get_available_models()
+```
+1. initialize_model_map(directory='path/to/simulation_outputs')
+2. get_available_models()                              → see what's available
+3. search_html_tables_by_keyword(id=..., keywords=[...]) → find relevant tables
+4. get_sql_available_hourlies(id=...)                  → find timeseries variables
+5. execute_pandas_on_timeseries(model_id=..., rddid=..., query=...) → analyze
 ```
 
-### 2. Explore available data
+## Example Files
 
-```python
-model_id = models[0]['model_id']
+The `example-files/` directory contains sample EnergyPlus outputs for testing:
 
-# Find cooling-related tables
-search_html_tables_by_keyword(id=model_id, keywords=['cooling', 'sizing', 'capacity'])
+- `ASHRAE901_HotelLarge_STD2013_Atlanta` — Large hotel, Atlanta climate
+- `ASHRAE901_HotelLarge_STD2013_Buffalo` — Large hotel, Buffalo climate
 
-# Get available timeseries variables
-get_sql_available_hourlies(id=model_id)
-```
+Each includes `.epJSON`, `.sql`, and `.table.htm` files. See `example-files/about.md` for provenance.
 
-### 3. Extract and analyze data
-
-```python
-# Get a specific HTML table
-get_html_table_by_tuple(
-    id=model_id,
-    query_tuple=('Entire Facility', 'HVAC Sizing Summary', 'Zone Sensible Cooling')
-)
-
-# Analyze timeseries data with pandas
-execute_multiline_pandas_on_timeseries(
-    model_id=model_id,
-    rddid=179,
-    code='''
-    df['kWh'] = df['Value'] / 3.6e6
-    df['month'] = df['dt'].dt.month
-    monthly_consumption = df.groupby('month')['kWh'].sum()
-    result = monthly_consumption.to_dict()
-    '''
-)
-```
-
-## Advanced Features
-
-### Pandas Integration
-
-The server includes secure pandas execution environments for both HTML table and timeseries data:
-
-- **Single-line queries**: Use `execute_pandas_on_*` functions
-- **Multi-line code**: Use `execute_multiline_pandas_on_*` functions with `result = ...` pattern
-- **Security**: Restricted execution environment prevents dangerous operations
-
-### Keyword Search
-
-Find relevant data using flexible keyword searching:
-
-```python
-# Search for energy consumption tables
-energy_tables = search_html_tables_by_keyword(
-    id=model_id,
-    keywords=['energy', 'consumption', 'end use'],
-    case_sensitive=False
-)
-```
-
-### Comprehensive Logging
-
-All function calls are logged with token consumption tracking in `monitor_logs/mcp_calls.log`.
-
-## Performance Considerations
-
-- Model map is cached for fast repeated access
-- Large datasets are automatically truncated in responses
-- HTML table search is optimized for performance
-- Token consumption is monitored and logged
-
-## Error Handling
-
-- Invalid model IDs return descriptive error messages
-- Missing data returns empty results with status information
-- Pandas execution errors are caught and reported safely
-
-## Token Management
-
-The server includes comprehensive token counting and logging:
-
-- Input/output tokens tracked per function call
-- Logs stored in JSON format for analysis
-- Automatic result truncation to prevent token overflow
-
-## AI Documentation & Analysis
-
-The `ai-docs/` folder contains detailed analysis documents generated during code review and security audits:
-
-- **SECURITY_REVIEW.md** - Complete security vulnerability analysis with risk assessment
-- **SECURITY_FIXES_APPLIED.md** - Detailed implementation summary of all security fixes
-- **ADDITIONAL_QUICK_FIXES.md** - Code quality and reliability improvements
-
-These documents are generated by AI assistants during development iterations. Future developers and AI agents should:
-
-1. **Always create analysis/review documents in the `ai-docs/` folder**, not the root directory
-2. Use consistent naming: `*_REVIEW.md` for analysis, `*_FIXES_APPLIED.md` for implementations
-3. Include implementation checklists and verification steps
-4. Link to specific files and line numbers for reference
-
-This keeps documentation organized and distinguishes AI-generated analysis from user-facing documentation.
-
-## Security & Code Quality
-
-Security fixes applied in February 2026 include parameterized SQL queries, path traversal prevention, input validation, error disclosure hardening, and sandbox improvements. See `ai-docs/` for full audit reports.
-
-### Known Issues for Future Versions
-
-1. **Unsafe Pickle Deserialization** (`src/model_data.py`)
-   - Model map cached using `pickle` which can execute arbitrary code if tampered with
-   - **Mitigation:** Replace with JSON serialization or safer formats (protobuf, msgpack)
-   - **Note:** Currently low risk as cache is local-only
-
-2. **Bare Exception Handling** (`src/tools/func_html.py`)
-   - `except Exception as e:` catches all exceptions including SystemExit and KeyboardInterrupt
-   - **Recommendation:** Catch specific exceptions only (FileNotFoundError, IOError, etc.)
-
-3. **Unused Imports**
-   - Multiple files have unused imports (func_epjson.py, func_html.py, helpers.py)
-   - **Action:** Clean up to reduce code complexity
-
-4. **Logging Issues**
-   - Some `print()` statements used instead of logging module
-   - **Action:** Consolidate logging for consistency
-
-5. **Known Bugs**
-   - `get_tables()` in `src/model_data.py:123` instantiates wrong class (SqlTimeseries instead of SqlTables)
-   - Parameter mismatch in logging decorator (`src/monitor.py`)
-
-### Testing
-
-Tests are in the `tests/` directory. Run with:
+## Testing
 
 ```bash
 uv run pytest
 ```
 
-See `tests/TESTING.md` for details on test coverage and structure.
+See `tests/TESTING.md` for coverage details.
 
-## Support
+## Known Issues
 
-For detailed usage instructions and examples, use:
+- `execute_pandas_on_*` and `execute_multiline_pandas_on_*` tools run user-provided code in a restricted `eval`/`exec` environment. The sandbox blocks common escape patterns but is not a full security boundary. Do not expose this server to untrusted users without additional sandboxing.
+- Some `print()` statements are used instead of the `logging` module for diagnostic output.
 
-```python
-get_usage_instructions()
-```
+## Security
 
-This returns the complete CLAUDE.md documentation file with comprehensive examples and best practices.
+Security improvements applied include parameterized SQL queries, path traversal prevention, input validation, and error disclosure hardening. See `ai-docs/` for full audit reports.

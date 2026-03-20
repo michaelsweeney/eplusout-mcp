@@ -1,7 +1,5 @@
 from pathlib import Path
-import time
 import pandas as pd
-import glob as gb
 import logging
 
 from typing import Any
@@ -187,19 +185,6 @@ def get_error_file(id: str) -> list[str]:
     model = model_map.get_model_by_id(id)
     err_file = model.get_associated_files_by_type('err')
     return err_file
-
-
-    # result = table
-    # log_mcp_call(
-    #     'get_html_table_by_tuple',
-    #     result,
-    #     kwargs={
-    #         'id': id,
-    #         'query_tuple': query_tuple
-    #     }
-    # )
-
-    # return table
 
 
 

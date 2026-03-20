@@ -3,10 +3,8 @@ from pydantic import BaseModel
 from typing import List, Literal
 from pathlib import Path
 import pandas as pd
-import logging
-import os
 import glob as gb
-from src.tools.func_html import get_all_table_data, get_html_report_name_data
+from src.tools.func_html import get_all_table_data
 from src.tools.func_epjson import read_epjson
 from src.tools.func_sql import SqlTimeseries, SqlTables
 
@@ -117,7 +115,7 @@ class SqlFileData(BaseModel):
     def get_tables(self):
 
         if self.sql_tables is None:
-            self.sql_tables = SqlTimeseries(sql_file=self.file_path)
+            self.sql_tables = SqlTables(sql_file=self.file_path)
 
         return self.sql_tables
 
@@ -245,11 +243,12 @@ class ModelMap(BaseModel):
         if len(dff) == 1:
             return dff[0]
         elif len(dff) > 1:
-            # logger.warning(f'multiple ids found; returning first: {id}')
             return dff[0]
         else:
-            pass
-            # logger.warning(f'no ids found: {id}')
+            available = [m.model_id for m in self.models]
+            raise ValueError(
+                f"Model '{id}' not found. Available models: {available}"
+            )
 
     def search_models(self, pattern: str | None = None):
         """

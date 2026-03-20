@@ -27,8 +27,10 @@ def test_get_model_by_id_returns_correct_model(model_map):
     assert model.stem == "ASHRAE901_HotelLarge_STD2013_Atlanta"
 
 
-def test_get_model_by_id_nonexistent_returns_none(model_map):
-    assert model_map.get_model_by_id("nonexistent/model") is None
+def test_get_model_by_id_nonexistent_raises(model_map):
+    import pytest
+    with pytest.raises(ValueError, match="Model 'nonexistent/model' not found"):
+        model_map.get_model_by_id("nonexistent/model")
 
 
 def test_search_models_atlanta(model_map):
