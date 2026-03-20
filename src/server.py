@@ -591,7 +591,8 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: int | list[int]) -> Any
         dflist.append(dfr[r_lbl])
 
     dff = pd.concat(dflist, axis=1)
-    result = dff.reset_index().to_dict(orient='records')
+    split = dff.reset_index().to_dict(orient='split')
+    result = {"columns": split["columns"], "data": split["data"]}
     log_mcp_call(
         'get_timeseries_report_by_rddid',
         f'{len(result)} records',

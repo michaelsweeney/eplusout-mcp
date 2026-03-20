@@ -89,7 +89,8 @@ class HtmlFileData(BaseModel):
                     return x[:-1]
             tdd.columns = [trim_last(x) for x in tdd.columns]
 
-            return tdd.to_dict(orient='records')
+            split = tdd.to_dict(orient='split')
+            return {"columns": split["columns"], "data": split["data"]}
 
         return []
 
