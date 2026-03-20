@@ -64,3 +64,22 @@ def test_get_all_model_ids(model_map):
     assert len(ids) == 4
     assert "./ASHRAE901_HotelLarge_STD2013_Atlanta" in ids
     assert "./ASHRAE901_HotelLarge_STD2013_Buffalo" in ids
+
+
+def test_get_basic_attributes_includes_file_paths(atlanta_model):
+    attrs = atlanta_model.get_basic_attributes()
+    assert "file_paths" in attrs
+    assert "epjson" in attrs["file_paths"]
+    assert "sql" in attrs["file_paths"]
+    assert "html" in attrs["file_paths"]
+    from pathlib import Path
+    for path in attrs["file_paths"].values():
+        assert Path(path).exists()
+
+
+def test_get_basic_attributes_partial_files(atlanta_dd_model):
+    """DD model has no epJSON — file_paths should only include sql and html."""
+    attrs = atlanta_dd_model.get_basic_attributes()
+    assert "epjson" not in attrs["file_paths"]
+    assert "sql" in attrs["file_paths"]
+    assert "html" in attrs["file_paths"]

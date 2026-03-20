@@ -157,19 +157,24 @@ class ModelFileData(BaseModel):
             self.display_name = self.stem
 
     def get_basic_attributes(self):
-        """Get basic model attributes for display"""
+        """Get basic model attributes for display."""
         file_types = []
+        file_paths = {}
         if self.epjson_data:
             file_types.append('epjson')
+            file_paths['epjson'] = self.epjson_data.file_path
         if self.sql_data:
             file_types.append('sql')
+            file_paths['sql'] = self.sql_data.file_path
         if self.html_data:
             file_types.append('html')
+            file_paths['html'] = self.html_data.file_path
 
         return {
             'model_id': self.model_id,
             'stem': self.stem,
-            'file_types': file_types
+            'file_types': file_types,
+            'file_paths': file_paths,
         }
 
 
