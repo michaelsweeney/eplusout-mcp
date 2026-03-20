@@ -48,12 +48,11 @@ See README.md for Claude Desktop and Claude Code configuration.
   - Reads and searches building component definitions
 
 **MCP Server** (`src/server.py`):
-- FastMCP-based server exposing tools to Claude
-- Tools cover model management, HTML analysis, timeseries extraction, epJSON exploration
+- FastMCP-based server exposing 6 tools to Claude
+- Tools cover model management, HTML analysis, and timeseries extraction
 
 **Monitoring & Logging** (`src/monitor.py`):
-- Token counting via tiktoken
-- Function call logging with input/output token tracking
+- Function call logging with input/output token estimation
 - Logs stored in `monitor_logs/mcp_calls.log`
 
 ### Key Design Patterns
@@ -76,16 +75,12 @@ eplusout-mcp/
 │   ├── server.py                # MCP server definition (tools)
 │   ├── model_data.py            # Model discovery
 │   ├── monitor.py               # Logging and token tracking
-│   ├── CLAUDE.md                # User-facing tool reference (served by get_usage_instructions)
+│   ├── CLAUDE.md                # User-facing tool documentation for LLM consumers of the MCP server
 │   │
 │   ├── tools/                   # File format handlers
 │   │   ├── func_sql.py          # SQL database access
 │   │   ├── func_html.py         # HTML report parsing
 │   │   └── func_epjson.py       # epJSON model access
-│   │
-│   └── utils/                   # Utilities
-│       ├── dtypes.py            # Data type definitions
-│       └── helpers.py           # Helper functions
 │
 ├── tests/                       # Pytest test suite
 ├── example-files/               # Sample EnergyPlus models for testing
@@ -114,7 +109,6 @@ uv run pytest tests/test_sql_timeseries.py
 Key dependencies (see `pyproject.toml`):
 - **fastmcp** — MCP server framework
 - **pandas, numpy** — Data manipulation
-- **tiktoken** — Token counting for monitoring
 - **sqlite3** (built-in) — Database access
 
 ## Key Concepts
@@ -126,4 +120,4 @@ Report Data Dictionary (RDD) ID — Unique identifier for timeseries variables i
 ## Notes for Future Developers
 
 - The server is read-only — it does not modify EnergyPlus files
-- `src/CLAUDE.md` is user-facing tool documentation, not developer docs — it is served by the `get_usage_instructions()` tool
+- `src/CLAUDE.md` is user-facing tool documentation for LLM consumers of the MCP server, not developer docs
