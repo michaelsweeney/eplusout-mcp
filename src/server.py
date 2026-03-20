@@ -7,8 +7,8 @@ import logging
 from typing import Any
 from mcp.server.fastmcp import FastMCP
 from src.monitor import log_mcp_call
-from src import CACHE_PICKLE, EPLUS_RUNS_DIRECTORY
-from src.model_data import initialize_model_map_from_directory, read_or_initialize_model_map
+from src import EPLUS_RUNS_DIRECTORY
+from src.model_data import initialize_model_map_from_directory
 from src.dataloader import execute_pandas_query, execute_multiline_pandas_query
 
 logger = logging.getLogger(__name__)
@@ -65,10 +65,10 @@ def _set_current_directory(directory: str) -> None:
 def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
 
     """
-    Initialize or refresh the model map cache for EnergyPlus models.
+    Initialize or refresh the model map for EnergyPlus models.
 
     Scans a directory recursively for EnergyPlus model files (.epJSON, .sql, .htm) and creates
-    a cached model map for efficient access. Files are grouped by directory and filename stem,
+    a model map for access. Files are grouped by directory and filename stem,
     so 'mydir/model1.sql' and 'mydir/model1.epJSON' will be recognized as part of the same model.
     Call this first before accessing model data.
 
@@ -110,7 +110,7 @@ def get_available_models(directory: str = DEFAULT_DIRECTORY) -> dict:
         - files: Dictionary of available file paths (epjson, sql, html)
     """
 
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
 
     # Directly return list of attributes instead of converting through DataFrame
     result = [x.get_basic_attributes() for x in model_map.models]
@@ -134,7 +134,7 @@ def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
         JSON string containing the requested table data with columns and rows.
     """
 
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
     table = model.html_data.get_table_by_tuple(query_tuple, asjson=True)
 
@@ -164,7 +164,7 @@ def get_rdd_file(id: str) -> list[str]:
         Plain text output of RDD file, which shows available output reports.
     """
 
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
     err_file = model.get_associated_files_by_type('rdd')
     return err_file
@@ -183,7 +183,7 @@ def get_error_file(id: str) -> list[str]:
         Plain text output of EPlus error file
     """
 
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
     err_file = model.get_associated_files_by_type('err')
     return err_file
@@ -221,7 +221,7 @@ def get_sql_available_hourlies(id: str) -> list | dict:
         - RDD IDs for use with get_timeseries_report_by_rddid
         - Units and key values for each variable
     """
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
     result = model.sql_data.get_timeseries().availseries()
 
@@ -260,8 +260,8 @@ def search_epjson_objects(
     """
 
 
-    # Get the cached epJSON data or load it
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    # Get the epJSON data
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(model_id)
     epjson_data = model.epjson_data.get_data()
 
@@ -530,7 +530,7 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: list[int]) -> Any:
         First use get_sql_available_hourlies to find the RDD ID for 'Zone Air Temperature',
         then use that ID with this tool.
     """
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(model_id)
 
 
@@ -659,7 +659,7 @@ def search_html_tables_by_keyword(id: str, keywords: list[str], case_sensitive: 
          'schedule', 'internal load', 'plug load']
     """
 
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
 
     # Get all table data
@@ -724,7 +724,7 @@ def search_html_tables_by_keyword(id: str, keywords: list[str], case_sensitive: 
 @mcp.tool()
 def execute_query(file_hash: str, query: str) -> str:
     """
-    Execute a pandas query on the cached DataFrame.
+    Execute a pandas query on a DataFrame.
 
     Args:
         file_hash (str): Hash of the loaded parquet file to query.
@@ -739,7 +739,7 @@ def execute_query(file_hash: str, query: str) -> str:
 @mcp.tool()
 def execute_multiline_query(file_hash: str, query: str) -> str:
     """
-    Execute multi-line pandas operations on the cached DataFrame.
+    Execute multi-line pandas operations on a DataFrame.
 
     Args:
         file_hash (str): Hash of the loaded parquet file to query.
@@ -781,7 +781,7 @@ def execute_pandas_on_timeseries(model_id: str, rddid: list[int], query: str) ->
     """
 
     # Get the timeseries data
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(model_id)
 
 
@@ -853,7 +853,7 @@ def execute_multiline_pandas_on_timeseries(model_id: str, rddid: list[int], code
     """
 
     # Get the timeseries data
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(model_id)
 
     resultlist = []
@@ -919,7 +919,7 @@ def execute_pandas_on_html_table(id: str, query_tuple: tuple, query: str) -> str
     """
 
     # Get the HTML table data
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
     table_data = model.html_data.get_table_by_tuple(query_tuple, asjson=False)
 
@@ -986,7 +986,7 @@ def execute_multiline_pandas_on_html_table(id: str, query_tuple: tuple, code: st
     """
 
     # Get the HTML table data
-    model_map = read_or_initialize_model_map(_get_current_directory(), CACHE_PICKLE)
+    model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(id)
     table_data = model.html_data.get_table_by_tuple(query_tuple, asjson=False)
 
