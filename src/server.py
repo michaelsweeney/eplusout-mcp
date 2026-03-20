@@ -487,7 +487,7 @@ def search_related_objects(model_id: str, search_pattern: str) -> dict:
 
 
 @mcp.tool()
-def get_timeseries_report_by_rddid_list(model_id, rddid: list[int]) -> Any:
+def get_timeseries_report_by_rddid_list(model_id, rddid: int | list[int]) -> Any:
     """
     Retrieve hourly timeseries data for a specific variable from an EnergyPlus model.
 
@@ -496,7 +496,7 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: list[int]) -> Any:
 
     Args:
         model_id: The model_id of the EnergyPlus model (obtain from get_available_models).
-        rddid: A list of RDD IDs (integers) for the desired variables (obtain from get_sql_available_hourlies).
+        rddid: RDD ID or list of RDD IDs (integers) for the desired variables (obtain from get_sql_available_hourlies).
 
     Returns:
         List of timestamped records, each containing:
@@ -510,9 +510,11 @@ def get_timeseries_report_by_rddid_list(model_id, rddid: list[int]) -> Any:
         First use get_sql_available_hourlies to find the RDD ID for 'Zone Air Temperature',
         then use that ID with this tool.
     """
+    if isinstance(rddid, int):
+        rddid = [rddid]
+
     model_map = initialize_model_map_from_directory(_get_current_directory())
     model = model_map.get_model_by_id(model_id)
-
 
     resultlist = []
     for rdd in rddid:
