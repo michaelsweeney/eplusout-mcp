@@ -64,12 +64,11 @@ run_with_mcp() {
     echo ""
 
     TIMEFORMAT='%R'
-    { time claude -p "$(cat "$PROMPT_FILE")" \
+    { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
         --allowedTools "$MCP_TOOLS,Bash,Read,Grep,Glob" \
         --output-format text \
-        --cwd "$REPO_DIR" \
-        > "$outfile" 2>&1 ; } 2> "$timefile"
+        > "$outfile" 2>&1 ) ; } 2> "$timefile"
 
     echo "  Output:    $outfile"
     echo "  Wall time: $(cat "$timefile")s"
@@ -85,12 +84,11 @@ run_without_mcp() {
     echo ""
 
     TIMEFORMAT='%R'
-    { time claude -p "$(cat "$PROMPT_FILE")" \
+    { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
         --allowedTools "Bash,Read,Grep,Glob" \
         --output-format text \
-        --cwd "$REPO_DIR" \
-        > "$outfile" 2>&1 ; } 2> "$timefile"
+        > "$outfile" 2>&1 ) ; } 2> "$timefile"
 
     echo "  Output:    $outfile"
     echo "  Wall time: $(cat "$timefile")s"
