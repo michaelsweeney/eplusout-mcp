@@ -1,0 +1,47 @@
+{
+  "description": "Ground truth for 20-model large batch HTML test. Real simulation results across 6 building types and 19 climates.",
+  "total_models": 20,
+  "building_types": ["ApartmentMidRise", "Hospital", "HotelLarge", "HotelSmall", "OfficeLarge", "OfficeSmall"],
+  "climates": ["Albuquerque", "Atlanta", "Buffalo", "Denver", "Dubai", "ElPaso", "Fairbanks", "GreatFalls", "HoChiMinh", "InternationalFalls", "Miami", "NewDelhi", "NewYork", "PortAngeles", "Rochester", "SanDiego", "Seattle", "Tampa", "Tucson"],
+  "top_3_heating": [
+    {"model": "OfficeLarge_GreatFalls", "heating_total_gj": 3488.37},
+    {"model": "HotelLarge_InternationalFalls", "heating_total_gj": 1894.57},
+    {"model": "OfficeLarge_PortAngeles", "heating_total_gj": 1161.41}
+  ],
+  "top_3_cooling": [
+    {"model": "OfficeLarge_HoChiMinh", "cooling_elec_gj": 6575.25},
+    {"model": "Hospital_NewDelhi", "cooling_elec_gj": 4388.51},
+    {"model": "HotelLarge_Dubai", "cooling_elec_gj": 3521.11}
+  ],
+  "avg_by_building_type": {
+    "OfficeLarge": {"avg_heating_gj": 1344.63, "avg_cooling_gj": 2636.85, "count": 4},
+    "Hospital": {"avg_heating_gj": 839.89, "avg_cooling_gj": 2909.77, "count": 3},
+    "HotelLarge": {"avg_heating_gj": 749.09, "avg_cooling_gj": 1815.35, "count": 3},
+    "ApartmentMidRise": {"avg_heating_gj": 262.63, "avg_cooling_gj": 128.59, "count": 4},
+    "HotelSmall": {"avg_heating_gj": 126.55, "avg_cooling_gj": 396.74, "count": 3},
+    "OfficeSmall": {"avg_heating_gj": 4.30, "avg_cooling_gj": 18.35, "count": 3}
+  },
+  "highest_avg_heating_type": "OfficeLarge",
+  "highest_avg_cooling_type": "Hospital",
+  "models_with_unmet_heating": [
+    {"model": "OfficeLarge_GreatFalls", "unmet_heating_hrs": 433.33, "unmet_cooling_hrs": 501.67},
+    {"model": "OfficeLarge_NewYork", "unmet_heating_hrs": 213.17, "unmet_cooling_hrs": 615.17},
+    {"model": "HotelSmall_Rochester", "unmet_heating_hrs": 121.17, "unmet_cooling_hrs": 337.83},
+    {"model": "OfficeLarge_PortAngeles", "unmet_heating_hrs": 68.17, "unmet_cooling_hrs": 229.17},
+    {"model": "ApartmentMidRise_Fairbanks", "unmet_heating_hrs": 31.0, "unmet_cooling_hrs": 9.17},
+    {"model": "OfficeSmall_Seattle", "unmet_heating_hrs": 24.5, "unmet_cooling_hrs": 2.5},
+    {"model": "ApartmentMidRise_Buffalo", "unmet_heating_hrs": 17.33, "unmet_cooling_hrs": 16.33},
+    {"model": "ApartmentMidRise_Denver", "unmet_heating_hrs": 4.5, "unmet_cooling_hrs": 12.67},
+    {"model": "OfficeSmall_Albuquerque", "unmet_heating_hrs": 4.0, "unmet_cooling_hrs": 24.67},
+    {"model": "HotelLarge_InternationalFalls", "unmet_heating_hrs": 3.83, "unmet_cooling_hrs": 41.83},
+    {"model": "HotelSmall_Tampa", "unmet_heating_hrs": 0.67, "unmet_cooling_hrs": 370.5},
+    {"model": "OfficeSmall_Tucson", "unmet_heating_hrs": 0.17, "unmet_cooling_hrs": 191.67}
+  ],
+  "hospital_comparison": {
+    "ElPaso": {"heating_gj": 1092.06, "cooling_gj": 2286.60, "unmet_heating": 0.0, "unmet_cooling": 64.33},
+    "SanDiego": {"heating_gj": 904.98, "cooling_gj": 2054.19, "unmet_heating": 0.0, "unmet_cooling": 727.83},
+    "NewDelhi": {"heating_gj": 522.64, "cooling_gj": 4388.51, "unmet_heating": 0.0, "unmet_cooling": 944.0},
+    "most_challenging": "NewDelhi",
+    "why": "Highest cooling load (4388 GJ) and worst unmet cooling hours (944 hrs) despite lowest heating. The extreme heat and humidity create cooling demands the system cannot fully meet."
+  }
+}

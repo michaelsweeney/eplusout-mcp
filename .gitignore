@@ -15,6 +15,9 @@ src/cache
 mcp_output
 eplus_files
 
+# Large test data
+example-files/large-batch/
+
 # Generated logs
 monitor_logs/mcp_calls.log
 
