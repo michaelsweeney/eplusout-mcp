@@ -68,10 +68,11 @@ run_with_mcp() {
         --model "$MODEL" \
         --allowedTools "$MCP_TOOLS,Bash,Read,Grep,Glob" \
         --output-format text \
-        > "$outfile" 2>&1 ) ; } 2> "$timefile"
+        > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
 
     echo "  Output:    $outfile"
     echo "  Wall time: $(cat "$timefile")s"
+    [[ ! -s "$outfile" ]] && echo "  WARNING: output file is empty — claude may have crashed"
     echo ""
 }
 
@@ -89,10 +90,11 @@ run_without_mcp() {
         --allowedTools "Bash,Read,Grep,Glob" \
         --append-system-prompt "You do NOT have EnergyPlus MCP tools. Parse HTML files and query SQLite databases directly using Bash, Read, Grep, and Glob. Use python3 or sqlite3 CLI for database queries. Use python3 or grep/sed for HTML parsing." \
         --output-format text \
-        > "$outfile" 2>&1 ) ; } 2> "$timefile"
+        > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
 
     echo "  Output:    $outfile"
     echo "  Wall time: $(cat "$timefile")s"
+    [[ ! -s "$outfile" ]] && echo "  WARNING: output file is empty — claude may have crashed"
     echo ""
 }
 
