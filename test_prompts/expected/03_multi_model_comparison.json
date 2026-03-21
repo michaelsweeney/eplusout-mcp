@@ -1,0 +1,26 @@
+{
+  "description": "Ground truth for 20-model comparison test using test_prompts/models/",
+  "total_models": 20,
+  "building_types": ["ApartmentMidRise", "ApartmentHighRise", "HotelLarge", "HotelSmall", "OfficeLarge", "OfficeMedium", "RetailStandalone", "SchoolPrimary"],
+  "top_3_heating": [
+    {"model": "HotelLarge_Minneapolis", "heating_total_gj": 1894.57},
+    {"model": "HotelLarge_Chicago", "heating_total_gj": 1484.28},
+    {"model": "HotelSmall_Chicago", "heating_total_gj": 1484.28, "note": "tie with OfficeLarge_Chicago and RetailStandalone_Buffalo"}
+  ],
+  "top_3_cooling": [
+    {"model": "HotelLarge_Houston", "cooling_elec_gj": 1549.92},
+    {"model": "HotelLarge_LosAngeles", "cooling_elec_gj": 1549.92, "note": "tie with Phoenix, HotelSmall_Miami, OfficeMedium_Atlanta"},
+    {"model": "HotelLarge_Denver", "cooling_elec_gj": 1246.82, "note": "tie with SchoolPrimary_Albuquerque"}
+  ],
+  "models_with_unmet_heating": {
+    "20.67_hrs": ["HotelLarge_Chicago", "HotelSmall_Chicago", "OfficeLarge_Chicago", "RetailStandalone_Buffalo"],
+    "6.83_hrs": ["HotelLarge_Houston", "HotelLarge_LosAngeles", "HotelLarge_Phoenix", "HotelSmall_Miami", "OfficeMedium_Atlanta"],
+    "3.83_hrs": ["HotelLarge_Minneapolis"]
+  },
+  "worst_unmet_model": "HotelLarge_Chicago",
+  "worst_unmet_facility_hrs": 20.67,
+  "worst_unmet_zone": "ROOM_4_MULT19_FLR_3",
+  "worst_unmet_zone_hrs": 14.67,
+  "cross_reference_insight": "The model with the highest heating load (HotelLarge_Minneapolis at 1894.57 GJ) has only 3.83 unmet hrs, while models with the most unmet hours (20.67 hrs) have lower heating loads (1484.28 GJ). Higher capacity/load does not imply more unmet hours — unmet hours depend on equipment sizing relative to peak demand, not total annual consumption.",
+  "note_on_data": "These 20 models use duplicated output data from 6 source simulations. Multiple models will show identical values when sourced from the same simulation."
+}
