@@ -205,7 +205,7 @@ def search_html_tables_by_keyword(id: str, keywords: str | list[str], case_sensi
 
 
 @mcp.tool()
-def get_html_table_by_tuple(id: str, query_tuple: tuple) -> list[dict]:
+def get_html_table_by_tuple(id: str, query_tuple: tuple) -> dict | list:
     """Retrieve a specific HTML table using a (report_for, report_name, table_name) tuple from search results."""
 
     model_map = _get_model_map()
