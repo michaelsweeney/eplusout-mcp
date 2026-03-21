@@ -87,6 +87,7 @@ run_without_mcp() {
     { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
         --allowedTools "Bash,Read,Grep,Glob" \
+        --append-system-prompt "You do NOT have EnergyPlus MCP tools. Parse HTML files and query SQLite databases directly using Bash, Read, Grep, and Glob. Use python3 or sqlite3 CLI for database queries. Use python3 or grep/sed for HTML parsing." \
         --output-format text \
         > "$outfile" 2>&1 ) ; } 2> "$timefile"
 
