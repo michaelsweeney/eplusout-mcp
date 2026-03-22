@@ -16,6 +16,7 @@ MCP_TOOLS+=",mcp__eplus_outputs__search_html_tables_by_keyword"
 MCP_TOOLS+=",mcp__eplus_outputs__get_html_table_by_tuple"
 MCP_TOOLS+=",mcp__eplus_outputs__get_sql_available_hourlies"
 MCP_TOOLS+=",mcp__eplus_outputs__get_timeseries_report_by_rddid_list"
+MCP_TOOLS+=",mcp__eplus_outputs__execute_pandas"
 
 # ─── Usage ───────────────────────────────────────────────────────────────────
 usage() {

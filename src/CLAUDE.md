@@ -14,6 +14,30 @@
 - `get_sql_available_hourlies(id)` — List available hourly variables with RDD IDs
 - `get_timeseries_report_by_rddid_list(model_id, rddid)` — Extract timeseries data by RDD ID(s)
 
+### Code Execution
+- `execute_pandas(model_id, code)` — Execute Python/pandas code against a model's data in a sandboxed environment
+
+#### Variables available in execute_pandas:
+- `sql_ts` — DataFrame with hourly timeseries. Datetime index, columns named `"{KeyValue}:{Name} [{Units}]"`. Energy values in Joules (divide by 1e9 for GJ).
+- `html_tables` — Dict of `{(report_for, report_name, table_name): DataFrame}`. All HTML summary tables.
+- `model_info` — Dict with `id`, `file_paths`, `file_types`.
+- `pd` — pandas module
+- `np` — numpy module
+
+#### Common patterns:
+```python
+# Annual electricity in GJ
+sql_ts["None:Electricity:Facility [J]"].sum() / 1e9
+
+# Peak day for a variable
+col = sql_ts.columns[0]
+peak_hour = sql_ts[col].idxmax()
+peak_day = sql_ts.loc[peak_hour.normalize():peak_hour.normalize() + pd.Timedelta(hours=23)]
+
+# Get End Uses table
+end_uses = html_tables[("Entire Facility", "Annual Building Utility Performance Summary", "End Uses")]
+```
+
 ### Schema Reference
 - `get_eplus_object_schema(object_type, version?)` — Look up field definitions for any EnergyPlus object type
 

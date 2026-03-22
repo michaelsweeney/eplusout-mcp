@@ -7,6 +7,8 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 from src.monitor import log_mcp_call
 from src.model_data import initialize_model_map_from_directory
+from src.sandbox import validate_code, execute_sandboxed, SandboxViolation
+from src.data_loader import DataCache
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ mcp = FastMCP("eplus_outputs")
 
 DEFAULT_DIRECTORY = 'example-files'
 SCHEMA_DIR = Path(__file__).parent.parent / "schema"
-MAX_RESPONSE_CHARS = 10000
+MAX_RESPONSE_CHARS = 50000
 DOCS_PATH = Path(__file__).parent / "CLAUDE.md"
 
 
@@ -130,6 +132,7 @@ def _truncate_response(result, label: str = "result"):
 
 # Global state
 _model_map = None
+_data_cache = DataCache(max_size=5)
 
 
 def _get_model_map():
@@ -153,6 +156,7 @@ def initialize_model_map(directory: str = DEFAULT_DIRECTORY) -> str:
         raise ValueError(f"Path is not a directory: {target_path}")
 
     _model_map = initialize_model_map_from_directory(directory)
+    _data_cache.clear()
     model_count = len(_model_map.models)
     result = f"Model map initialized successfully for directory: {directory} ({model_count} models found)"
     log_mcp_call('initialize_model_map', result, kwargs={'directory': directory})
@@ -261,6 +265,52 @@ def get_timeseries_report_by_rddid_list(model_id: str, rddid: int | list[int]) -
         kwargs={'model_id': model_id, 'rddid': rddid}
     )
     return _truncate_response(result, "records")
+
+
+@mcp.tool()
+def execute_pandas(model_id: str, code: str) -> dict:
+    """Execute Python/pandas code against a model's pre-loaded data.
+
+    Available variables in the execution environment:
+    - sql_ts: DataFrame of hourly timeseries (datetime index, one column per variable).
+              Column names include units, e.g. "None:Electricity:Facility [J]".
+              Values are in source units (J for energy, W for power).
+    - html_tables: dict of {(report_for, report_name, table_name): DataFrame}.
+              All HTML summary tables as DataFrames with proper headers.
+    - model_info: dict with model metadata (id, file_paths, file_types).
+    - pd: pandas module
+    - np: numpy module
+
+    The last expression in the code is returned as the result.
+    No filesystem, network, or import access. 30-second timeout.
+    """
+    try:
+        validate_code(code)
+    except SandboxViolation as e:
+        return {"error": f"Code validation failed: {e}"}
+
+    model_map = _get_model_map()
+    model = model_map.get_model_by_id(model_id)
+
+    data_globals = {"model_info": model.get_basic_attributes()}
+
+    if model.sql_data:
+        data_globals["sql_ts"] = _data_cache.get_sql_ts(
+            model_id, model.sql_data.file_path
+        )
+    else:
+        data_globals["sql_ts"] = pd.DataFrame()
+
+    if model.html_data:
+        data_globals["html_tables"] = _data_cache.get_html_tables(
+            model_id, model.html_data.file_path
+        )
+    else:
+        data_globals["html_tables"] = {}
+
+    result = execute_sandboxed(code, data_globals)
+    log_mcp_call("execute_pandas", result, kwargs={"model_id": model_id, "code": code[:200]})
+    return result
 
 
 @mcp.tool()
