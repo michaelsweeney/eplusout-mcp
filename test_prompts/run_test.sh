@@ -10,13 +10,19 @@ RESULTS_DIR="$SCRIPT_DIR/results"
 MODEL="${MODEL:-sonnet}"
 
 # MCP tools — must match the tool names Claude Code registers for this server
-MCP_TOOLS="mcp__eplus_outputs__initialize_model_map"
-MCP_TOOLS+=",mcp__eplus_outputs__get_available_models"
-MCP_TOOLS+=",mcp__eplus_outputs__search_html_tables_by_keyword"
-MCP_TOOLS+=",mcp__eplus_outputs__get_html_table_by_tuple"
-MCP_TOOLS+=",mcp__eplus_outputs__get_sql_available_hourlies"
-MCP_TOOLS+=",mcp__eplus_outputs__get_timeseries_report_by_rddid_list"
-MCP_TOOLS+=",mcp__eplus_outputs__execute_pandas"
+
+# For pandas-exec mode: discovery + HTML + execute_pandas
+MCP_TOOLS_PANDAS="mcp__eplus_outputs__initialize_model_map"
+MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__get_available_models"
+MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__search_html_tables_by_keyword"
+MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__get_html_table_by_tuple"
+MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__get_sql_available_hourlies"
+MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__execute_pandas"
+
+# For hybrid mode: pandas-exec tools + pre-built aggregation tools
+MCP_TOOLS_HYBRID="$MCP_TOOLS_PANDAS"
+MCP_TOOLS_HYBRID+=",mcp__eplus_outputs__get_end_uses"
+MCP_TOOLS_HYBRID+=",mcp__eplus_outputs__get_timeseries_stats"
 
 # ─── Usage ───────────────────────────────────────────────────────────────────
 usage() {
@@ -24,10 +30,17 @@ usage() {
 Usage: $0 <prompt_name> <mode>
 
 Modes:
-  with-mcp       Run with MCP eplus_outputs tools + Bash/Read/Grep/Glob
-  without-mcp    Run with only Bash/Read/Grep/Glob (must parse files raw)
-  both           Run both modes sequentially
-  grade          Grade existing results against expected answers
+  vanilla        Bash/Read/Grep/Glob only, no MCP, no domain knowledge
+  pandas-exec    MCP tools (discovery + HTML + execute_pandas) + Bash/Read/Grep/Glob
+  hybrid         MCP tools (pandas-exec + get_end_uses + get_timeseries_stats) + Bash/Read/Grep/Glob
+  prompt-only    Bash/Read/Grep/Glob only, no MCP, but with EnergyPlus domain guide as system prompt
+  all            Run all 4 modes sequentially
+  grade          Grade all available results against expected answers
+
+  Backward-compat aliases:
+  with-mcp       Alias for pandas-exec
+  without-mcp    Alias for vanilla
+  both           Alias for: vanilla then pandas-exec
 
 Options (via env vars):
   MODEL=sonnet   Claude model to use (sonnet, opus, haiku)
@@ -36,9 +49,9 @@ Available prompts:
 $(ls "$PROMPTS_DIR"/*.md 2>/dev/null | xargs -I{} basename {} .md | sed 's/^/  /')
 
 Examples:
-  $0 01_cross_reference_meters both
-  $0 02_unmet_hours_investigation with-mcp
-  MODEL=opus $0 01_cross_reference_meters both
+  $0 01_cross_reference_meters all
+  $0 02_unmet_hours_investigation hybrid
+  MODEL=opus $0 01_cross_reference_meters pandas-exec
   $0 01_cross_reference_meters grade
 EOF
     exit 1
@@ -56,32 +69,12 @@ EXPECTED_FILE="$EXPECTED_DIR/${PROMPT_NAME}.json"
 mkdir -p "$RESULTS_DIR"
 
 # ─── Run functions ───────────────────────────────────────────────────────────
-run_with_mcp() {
-    local outfile="$RESULTS_DIR/${PROMPT_NAME}_mcp_${MODEL}.md"
-    local timefile="$RESULTS_DIR/${PROMPT_NAME}_mcp_${MODEL}.time"
+
+run_vanilla() {
+    local outfile="$RESULTS_DIR/${PROMPT_NAME}_vanilla_${MODEL}.md"
+    local timefile="$RESULTS_DIR/${PROMPT_NAME}_vanilla_${MODEL}.time"
     echo "╔══════════════════════════════════════════════════╗"
-    echo "║  WITH MCP tools │ model=$MODEL"
-    echo "╚══════════════════════════════════════════════════╝"
-    echo ""
-
-    TIMEFORMAT='%R'
-    { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
-        --model "$MODEL" \
-        --allowedTools "$MCP_TOOLS,Bash,Read,Grep,Glob" \
-        --output-format text \
-        > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
-
-    echo "  Output:    $outfile"
-    echo "  Wall time: $(cat "$timefile")s"
-    [[ ! -s "$outfile" ]] && echo "  WARNING: output file is empty — claude may have crashed"
-    echo ""
-}
-
-run_without_mcp() {
-    local outfile="$RESULTS_DIR/${PROMPT_NAME}_raw_${MODEL}.md"
-    local timefile="$RESULTS_DIR/${PROMPT_NAME}_raw_${MODEL}.time"
-    echo "╔══════════════════════════════════════════════════╗"
-    echo "║  WITHOUT MCP tools │ model=$MODEL"
+    echo "║  VANILLA (no MCP, no domain guide) │ model=$MODEL"
     echo "╚══════════════════════════════════════════════════╝"
     echo ""
 
@@ -99,34 +92,127 @@ run_without_mcp() {
     echo ""
 }
 
+run_pandas_exec() {
+    local outfile="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.md"
+    local timefile="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.time"
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  PANDAS-EXEC (MCP + execute_pandas) │ model=$MODEL"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+
+    TIMEFORMAT='%R'
+    { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
+        --model "$MODEL" \
+        --allowedTools "$MCP_TOOLS_PANDAS,Bash,Read,Grep,Glob" \
+        --output-format text \
+        > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
+
+    echo "  Output:    $outfile"
+    echo "  Wall time: $(cat "$timefile")s"
+    [[ ! -s "$outfile" ]] && echo "  WARNING: output file is empty — claude may have crashed"
+    echo ""
+}
+
+run_hybrid() {
+    local outfile="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.md"
+    local timefile="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.time"
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  HYBRID (MCP + aggregation tools) │ model=$MODEL"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+
+    TIMEFORMAT='%R'
+    { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
+        --model "$MODEL" \
+        --allowedTools "$MCP_TOOLS_HYBRID,Bash,Read,Grep,Glob" \
+        --output-format text \
+        > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
+
+    echo "  Output:    $outfile"
+    echo "  Wall time: $(cat "$timefile")s"
+    [[ ! -s "$outfile" ]] && echo "  WARNING: output file is empty — claude may have crashed"
+    echo ""
+}
+
+run_prompt_only() {
+    local outfile="$RESULTS_DIR/${PROMPT_NAME}_prompt-only_${MODEL}.md"
+    local timefile="$RESULTS_DIR/${PROMPT_NAME}_prompt-only_${MODEL}.time"
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  PROMPT-ONLY (no MCP, with domain guide) │ model=$MODEL"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+
+    local domain_guide="$SCRIPT_DIR/domain_guide.md"
+    [[ ! -f "$domain_guide" ]] && echo "Error: domain guide not found: $domain_guide" && exit 1
+
+    TIMEFORMAT='%R'
+    { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
+        --model "$MODEL" \
+        --allowedTools "Bash,Read,Grep,Glob" \
+        --append-system-prompt "$(cat "$domain_guide")" \
+        --output-format text \
+        > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
+
+    echo "  Output:    $outfile"
+    echo "  Wall time: $(cat "$timefile")s"
+    [[ ! -s "$outfile" ]] && echo "  WARNING: output file is empty — claude may have crashed"
+    echo ""
+}
+
 grade() {
-    local mcp_file="$RESULTS_DIR/${PROMPT_NAME}_mcp_${MODEL}.md"
-    local raw_file="$RESULTS_DIR/${PROMPT_NAME}_raw_${MODEL}.md"
-    local mcp_time="$RESULTS_DIR/${PROMPT_NAME}_mcp_${MODEL}.time"
-    local raw_time="$RESULTS_DIR/${PROMPT_NAME}_raw_${MODEL}.time"
+    local vanilla_file="$RESULTS_DIR/${PROMPT_NAME}_vanilla_${MODEL}.md"
+    local pandas_file="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.md"
+    local hybrid_file="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.md"
+    local prompt_only_file="$RESULTS_DIR/${PROMPT_NAME}_prompt-only_${MODEL}.md"
+    local vanilla_time="$RESULTS_DIR/${PROMPT_NAME}_vanilla_${MODEL}.time"
+    local pandas_time="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.time"
+    local hybrid_time="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.time"
+    local prompt_only_time="$RESULTS_DIR/${PROMPT_NAME}_prompt-only_${MODEL}.time"
     local grade_out="$RESULTS_DIR/${PROMPT_NAME}_grade_${MODEL}.md"
 
     [[ ! -f "$EXPECTED_FILE" ]] && echo "Error: expected answers not found: $EXPECTED_FILE" && exit 1
 
-    # At least one result must exist
-    if [[ ! -f "$mcp_file" ]] && [[ ! -f "$raw_file" ]]; then
-        echo "Error: no results to grade. Run 'with-mcp' or 'without-mcp' first."
+    # At least one result must exist and be non-empty
+    local any_found=0
+    for f in "$vanilla_file" "$pandas_file" "$hybrid_file" "$prompt_only_file"; do
+        [[ -s "$f" ]] && any_found=1
+    done
+    if [[ $any_found -eq 0 ]]; then
+        echo "Error: no results to grade. Run one or more modes first."
         exit 1
     fi
 
-    local mcp_content raw_content mcp_wall raw_wall
-    mcp_content="$(cat "$mcp_file" 2>/dev/null || echo "[not yet run]")"
-    raw_content="$(cat "$raw_file" 2>/dev/null || echo "[not yet run]")"
-    mcp_wall="$(cat "$mcp_time" 2>/dev/null || echo "N/A")"
-    raw_wall="$(cat "$raw_time" 2>/dev/null || echo "N/A")"
+    # Build response header lines (only for files that exist and are non-empty)
+    local response_header=""
+    [[ -s "$vanilla_file" ]] && response_header+="- Response A (\"Vanilla\"): Bash/Read/Grep/Glob only. Wall time: $(cat "$vanilla_time" 2>/dev/null || echo "N/A")s"$'\n'
+    [[ -s "$pandas_file" ]] && response_header+="- Response B (\"Pandas-Exec\"): MCP tools with pandas execution. Wall time: $(cat "$pandas_time" 2>/dev/null || echo "N/A")s"$'\n'
+    [[ -s "$hybrid_file" ]] && response_header+="- Response C (\"Hybrid\"): MCP tools with pandas execution + pre-built aggregation. Wall time: $(cat "$hybrid_time" 2>/dev/null || echo "N/A")s"$'\n'
+    [[ -s "$prompt_only_file" ]] && response_header+="- Response D (\"Prompt-Only\"): Bash/Read/Grep/Glob with EnergyPlus domain guide. Wall time: $(cat "$prompt_only_time" 2>/dev/null || echo "N/A")s"$'\n'
+
+    # Build response body sections (only for files that exist and are non-empty)
+    local response_bodies=""
+    if [[ -s "$vanilla_file" ]]; then
+        response_bodies+=$'\n## Response A — Vanilla (no MCP, no domain guide)\n'
+        response_bodies+="$(cat "$vanilla_file")"$'\n'
+    fi
+    if [[ -s "$pandas_file" ]]; then
+        response_bodies+=$'\n## Response B — Pandas-Exec (MCP + execute_pandas)\n'
+        response_bodies+="$(cat "$pandas_file")"$'\n'
+    fi
+    if [[ -s "$hybrid_file" ]]; then
+        response_bodies+=$'\n## Response C — Hybrid (MCP + pre-built aggregation tools)\n'
+        response_bodies+="$(cat "$hybrid_file")"$'\n'
+    fi
+    if [[ -s "$prompt_only_file" ]]; then
+        response_bodies+=$'\n## Response D — Prompt-Only (no MCP, with domain guide)\n'
+        response_bodies+="$(cat "$prompt_only_file")"$'\n'
+    fi
 
     local grade_prompt
     grade_prompt="$(cat <<GRADEEOF
-You are grading two AI responses to the same EnergyPlus analysis prompt.
-Both were given the same task but different toolsets:
-- Response A ("MCP") had specialized EnergyPlus MCP tools + Bash/Read/Grep/Glob. Wall time: ${mcp_wall}s
-- Response B ("Raw") had only Bash, Read, Grep, and Glob. Wall time: ${raw_wall}s
-
+You are grading up to 4 AI responses to the same EnergyPlus analysis prompt.
+Each was given the same task but different toolsets:
+${response_header}
 ## Expected Answers (ground truth)
 \`\`\`json
 $(cat "$EXPECTED_FILE")
@@ -134,16 +220,10 @@ $(cat "$EXPECTED_FILE")
 
 ## The Original Prompt
 $(cat "$PROMPT_FILE")
-
-## Response A — WITH MCP tools
-${mcp_content}
-
-## Response B — WITHOUT MCP tools
-${raw_content}
-
+${response_bodies}
 ## Grading Instructions
 
-Score each response on these dimensions (1-5 scale, 5 = best):
+Score each available response on these dimensions (1-5 scale, 5 = best):
 
 | Dimension | What to evaluate |
 |-----------|-----------------|
@@ -153,12 +233,12 @@ Score each response on these dimensions (1-5 scale, 5 = best):
 | **Insight** | Did the response add useful interpretation beyond raw numbers? |
 | **Graceful degradation** | When data was missing, did it explain what was needed and why? |
 
-For each dimension, give a score and a one-line justification for each response.
+For each dimension, give a score and a one-line justification for each response that exists.
 
 Then provide:
-1. A summary comparison table
-2. An overall verdict: which approach was better and why
-3. Any observations about what the MCP tools helped with (or didn't)
+1. A summary comparison table (only columns for responses that were run)
+2. An overall verdict: which approach performed best and why
+3. Observations on what helped — did MCP tools reduce errors? Did the domain guide help? Did pre-built aggregation tools make a difference?
 GRADEEOF
 )"
 
@@ -179,11 +259,17 @@ GRADEEOF
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 case "$MODE" in
-    with-mcp)     run_with_mcp ;;
-    without-mcp)  run_without_mcp ;;
-    both)         run_with_mcp; run_without_mcp ;;
-    grade)        grade ;;
-    *)            usage ;;
+    vanilla)        run_vanilla ;;
+    pandas-exec)    run_pandas_exec ;;
+    hybrid)         run_hybrid ;;
+    prompt-only)    run_prompt_only ;;
+    all)            run_vanilla; run_pandas_exec; run_hybrid; run_prompt_only ;;
+    grade)          grade ;;
+    # Backward-compat aliases
+    with-mcp)       run_pandas_exec ;;
+    without-mcp)    run_vanilla ;;
+    both)           run_vanilla; run_pandas_exec ;;
+    *)              usage ;;
 esac
 
 echo ""
