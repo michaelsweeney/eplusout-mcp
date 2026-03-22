@@ -9,6 +9,7 @@ from src.monitor import log_mcp_call
 from src.model_data import initialize_model_map_from_directory
 from src.sandbox import validate_code, execute_sandboxed, SandboxViolation
 from src.data_loader import DataCache
+from src.tools.func_aggregation import compute_end_uses, compute_timeseries_stats
 
 logger = logging.getLogger(__name__)
 
@@ -310,6 +311,67 @@ def execute_pandas(model_id: str, code: str) -> dict:
 
     result = execute_sandboxed(code, data_globals)
     log_mcp_call("execute_pandas", result, kwargs={"model_id": model_id, "code": code[:200]})
+    return result
+
+
+@mcp.tool()
+def get_end_uses(
+    model_ids: list[str] | str = "all",
+    end_uses: list[str] | str = "all",
+    sort_by: str | None = None
+) -> dict:
+    """Get annual end uses across one or more models in one call.
+
+    Returns a table with one row per model, columns for each end use + fuel type.
+    Values in GJ (matching HTML report units). Handles multi-model comparison.
+    """
+    model_map = _get_model_map()
+
+    if model_ids == "all":
+        models = model_map.models
+    else:
+        if isinstance(model_ids, str):
+            model_ids = [model_ids]
+        models = [model_map.get_model_by_id(mid) for mid in model_ids]
+
+    eu_list = None if end_uses == "all" else (end_uses if isinstance(end_uses, list) else [end_uses])
+
+    result_df = compute_end_uses(models, end_uses=eu_list, sort_by=sort_by)
+    result = result_df.to_dict(orient="records")
+
+    log_mcp_call("get_end_uses", f"{len(result)} models", kwargs={"model_ids": str(model_ids)[:100]})
+    return _truncate_response(result, "models")
+
+
+@mcp.tool()
+def get_timeseries_stats(
+    model_id: str,
+    rddid: int | list[int],
+    agg: str = "annual"
+) -> dict:
+    """Get pre-computed statistics for hourly timeseries variables.
+
+    agg options:
+    - "annual": sum, mean, min, max, peak_value, peak_timestamp (includes sum_GJ for energy)
+    - "monthly": 12-row summary per month
+    - "daily": 365-row summary per day
+    - "peak_day": 24 hours around the peak value
+    - "peak_week": ±3 days around the peak
+
+    Values include units metadata.
+    """
+    model_map = _get_model_map()
+    model = model_map.get_model_by_id(model_id)
+
+    if isinstance(rddid, list):
+        results = {}
+        for rid in rddid:
+            results[f"rdd_{rid}"] = compute_timeseries_stats(model, rid, agg)
+        log_mcp_call("get_timeseries_stats", results, kwargs={"model_id": model_id, "rddid": rddid, "agg": agg})
+        return results
+
+    result = compute_timeseries_stats(model, rddid, agg)
+    log_mcp_call("get_timeseries_stats", result, kwargs={"model_id": model_id, "rddid": rddid, "agg": agg})
     return result
 
 
