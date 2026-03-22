@@ -104,6 +104,7 @@ run_pandas_exec() {
     { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
         --allowedTools "$MCP_TOOLS_PANDAS,Bash,Read,Grep,Glob" \
+        --append-system-prompt "You have EnergyPlus MCP tools available including execute_pandas for running pandas code against model data. Use these tools directly — do NOT ask for permission, do NOT ask the user to approve tools. All tools listed in --allowedTools are pre-approved. If an MCP tool call fails, fall back to Bash/Read/Grep/Glob." \
         --output-format text \
         > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
 
@@ -125,6 +126,7 @@ run_hybrid() {
     { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
         --allowedTools "$MCP_TOOLS_HYBRID,Bash,Read,Grep,Glob" \
+        --append-system-prompt "You have EnergyPlus MCP tools available including execute_pandas, get_end_uses, and get_timeseries_stats. Use these tools directly — do NOT ask for permission, do NOT ask the user to approve tools. All tools listed in --allowedTools are pre-approved. If an MCP tool call fails, fall back to Bash/Read/Grep/Glob." \
         --output-format text \
         > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
 
@@ -149,7 +151,9 @@ run_prompt_only() {
     { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
         --allowedTools "Bash,Read,Grep,Glob" \
-        --append-system-prompt "$(cat "$domain_guide")" \
+        --append-system-prompt "You do NOT have EnergyPlus MCP tools. Parse HTML files and query SQLite databases directly using Bash, Read, Grep, and Glob. Use python3 or sqlite3 CLI for database queries. Use python3 or grep/sed for HTML parsing. Do NOT ask for MCP tool permissions — you don't have them. Here is a domain guide to help:
+
+$(cat "$domain_guide")" \
         --output-format text \
         > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
 
