@@ -1,0 +1,60 @@
+{
+  "description": "Ground truth for cross-reference meters test using repo example-files",
+  "models_found": {
+    "note": "2 HotelLarge models (Atlanta, Buffalo) each with HTML (.table.htm), SQL (.sql), and epJSON"
+  },
+  "html_end_uses": {
+    "Atlanta": {
+      "heating_electricity_gj": 805.31,
+      "heating_natural_gas_gj": 0.00,
+      "interior_lighting_electricity_gj": 868.95,
+      "interior_equipment_electricity_gj": 1658.15,
+      "interior_equipment_natural_gas_gj": 1788.80,
+      "total_electricity_gj": 6841.44,
+      "total_natural_gas_gj": 4823.68
+    },
+    "Buffalo": {
+      "heating_electricity_gj": 0.00,
+      "heating_natural_gas_gj": 1484.28,
+      "interior_lighting_electricity_gj": 866.94,
+      "interior_equipment_electricity_gj": 1658.15,
+      "interior_equipment_natural_gas_gj": 1788.80,
+      "total_electricity_gj": 5105.50,
+      "total_natural_gas_gj": 6658.12
+    }
+  },
+  "sql_hourly_variables": {
+    "Atlanta": [
+      {"rdd_id": 21, "name": "Site Day Type Index", "key": "Environment"},
+      {"rdd_id": 179, "name": "Electricity:Facility", "annual_sum_gj": 6841.44},
+      {"rdd_id": 1807, "name": "NaturalGas:Facility", "annual_sum_gj": 4823.68},
+      {"rdd_id": 4910, "name": "ElectricityNet:Facility", "annual_sum_gj": 6841.44}
+    ],
+    "Buffalo": [
+      {"rdd_id": 21, "name": "Site Day Type Index", "key": "Environment"},
+      {"rdd_id": 179, "name": "Electricity:Facility", "annual_sum_gj": 5105.50},
+      {"rdd_id": 1807, "name": "NaturalGas:Facility", "annual_sum_gj": 6658.12},
+      {"rdd_id": 4914, "name": "ElectricityNet:Facility", "annual_sum_gj": 5105.50},
+      {"rdd_id": 5947, "name": "Boiler Heating Rate", "key": "HEATSYS1 BOILER1"},
+      {"rdd_id": 6005, "name": "Boiler Heating Rate", "key": "HEATSYS1 BOILER2"}
+    ]
+  },
+  "cross_reference": {
+    "Atlanta": {
+      "sql_electricity_facility_gj": 6841.44,
+      "html_total_electricity_gj": 6841.44,
+      "match_electricity": true,
+      "sql_naturalgas_facility_gj": 4823.68,
+      "html_total_natural_gas_gj": 4823.68,
+      "match_gas": true
+    },
+    "Buffalo": {
+      "sql_electricity_facility_gj": 5105.50,
+      "html_total_electricity_gj": 5105.50,
+      "match_electricity": true,
+      "sql_naturalgas_facility_gj": 6658.12,
+      "html_total_natural_gas_gj": 6658.12,
+      "match_gas": true
+    }
+  }
+}

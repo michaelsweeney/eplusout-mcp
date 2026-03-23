@@ -1,7 +1,6 @@
 """Tests for SQL timeseries data extraction."""
 
 import pandas as pd
-from src.dataloader import execute_pandas_query
 
 
 def test_availseries_count(atlanta_model):
@@ -14,9 +13,7 @@ def test_availseries_structure(atlanta_model):
     ts = atlanta_model.sql_data.get_timeseries()
     avail = ts.availseries()
     expected_keys = {
-        "ReportDataDictionaryIndex", "IsMeter", "Type", "IndexGroup",
-        "TimestepType", "KeyValue", "Name", "ReportingFrequency",
-        "ScheduleName", "Units"
+        "ReportDataDictionaryIndex", "Name", "KeyValue", "Units"
     }
     assert set(avail[0].keys()) == expected_keys
 
@@ -58,5 +55,4 @@ def test_pandas_on_timeseries(atlanta_model):
     ts = atlanta_model.sql_data.get_timeseries()
     series = ts.getseries_by_record_id(179)
     df = pd.DataFrame(series)
-    result = execute_pandas_query(df, "df['Value'].mean()")
-    assert "Value" not in result or float(result) > 0
+    assert df['Value'].mean() > 0

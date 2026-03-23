@@ -1,17 +1,15 @@
 
 from pydantic import BaseModel
-from typing import List, Literal
-import pickle
-import gzip
+from typing import List
 from pathlib import Path
 import pandas as pd
 import logging
-import os
 import glob as gb
-from src.tools.func_html import get_all_table_data, get_html_report_name_data
+
+logger = logging.getLogger(__name__)
+from src.tools.func_html import get_all_table_data
 from src.tools.func_epjson import read_epjson
-from src.tools.func_sql import SqlTimeseries, SqlTables
-from src import CACHE_PICKLE, CACHE_DIRECTORY
+from src.tools.func_sql import SqlTimeseries
 
 
 """pydantic base model classes"""
@@ -46,7 +44,7 @@ class HtmlFileData(BaseModel):
 
     def get_data(self) -> list:
         if self.data is None:
-            print(f'storing html data: {self.file_path}')
+            logger.debug(f'storing html data: {self.file_path}')
             self.data = get_all_table_data(self.file_path)
         return self.data
 
@@ -64,9 +62,9 @@ class HtmlFileData(BaseModel):
         ]
 
         if len(datafilter) == 0:
-            print(f'no tables found: {tabletuple}')
+            logger.warning(f'no tables found: {tabletuple}')
         elif len(datafilter) > 1:
-            print(f'multiple tables found: {tabletuple}')
+            logger.warning(f'multiple tables found: {tabletuple}')
 
         else:
 
@@ -91,7 +89,8 @@ class HtmlFileData(BaseModel):
                     return x[:-1]
             tdd.columns = [trim_last(x) for x in tdd.columns]
 
-            return tdd.to_dict(orient='records')
+            split = tdd.to_dict(orient='split')
+            return {"columns": split["columns"], "data": split["data"]}
 
         return []
 
@@ -99,30 +98,14 @@ class HtmlFileData(BaseModel):
 
 
 class SqlFileData(BaseModel):
-    """
-    Represents a SQL output file and provides access to its parsed SqlObj.
-
-    Attributes:
-        file_path (str): Path to the SQL file.
-        sql_obj (SqlObj | None): Cached SqlObj instance for this file.
-    """
-
+    """Represents a SQL output file and provides access to timeseries data."""
     file_path: str
     sql_timeseries: SqlTimeseries | None = None
-    sql_tables: SqlTables | None = None
 
     def get_timeseries(self):
-
         if self.sql_timeseries is None:
             self.sql_timeseries = SqlTimeseries(sql_file=self.file_path)
         return self.sql_timeseries
-
-    def get_tables(self):
-
-        if self.sql_tables is None:
-            self.sql_tables = SqlTimeseries(sql_file=self.file_path)
-
-        return self.sql_tables
 
 
 
@@ -174,52 +157,25 @@ class ModelFileData(BaseModel):
             self.display_name = self.stem
 
     def get_basic_attributes(self):
-        """Get basic model attributes for display"""
-        files = {}
+        """Get basic model attributes for display."""
+        file_types = []
+        file_paths = {}
         if self.epjson_data:
-            files['epjson'] = self.epjson_data.file_path
+            file_types.append('epjson')
+            file_paths['epjson'] = self.epjson_data.file_path
         if self.sql_data:
-            files['sql'] = self.sql_data.file_path
+            file_types.append('sql')
+            file_paths['sql'] = self.sql_data.file_path
         if self.html_data:
-            files['html'] = self.html_data.file_path
+            file_types.append('html')
+            file_paths['html'] = self.html_data.file_path
 
         return {
             'model_id': self.model_id,
-            'directory': self.directory,
             'stem': self.stem,
-            'display_name': self.display_name,
-            'files': files
+            'file_types': file_types,
+            'file_paths': file_paths,
         }
-
-    def get_associated_files_by_type(self, ext: str, file_type: Literal['plain_text', 'csv'] = 'plain_text'):
-
-        # assumes there is one and only one epjson_data file. also assumes that it is a plain text object and returns lines.
-        # TODO this really doesnt belong here.
-
-        if self.epjson_data:
-            epjson_path = Path(self.epjson_data.file_path)
-            parent = epjson_path.parent
-            stem = epjson_path.stem
-            files_found = [x for x in parent.glob(f'{stem}*{ext}')]
-
-            if len(files_found) >= 1:
-                ftr = files_found[0]
-                if file_type == 'plain_text':
-                    with open(ftr, 'r') as f:
-                        return f.readlines()
-                elif file_type == 'csv':
-                    try:
-                        df = pd.read_csv(ftr, encoding='utf-8')
-                    except pd.errors.ParserError as e:
-                        with open(ftr, 'r') as f:
-                            print(f"csv parser error, returning as text: {ftr}")
-                            return f.readlines()
-                    return df
-                else:
-                    return f'error -- no implementation for type {file_type}'
-            else:
-                return f"error - no file found for type {ext}"
-        pass
 
 
 class ModelMap(BaseModel):
@@ -248,11 +204,12 @@ class ModelMap(BaseModel):
         if len(dff) == 1:
             return dff[0]
         elif len(dff) > 1:
-            # logger.warning(f'multiple ids found; returning first: {id}')
             return dff[0]
         else:
-            pass
-            # logger.warning(f'no ids found: {id}')
+            available = [m.model_id for m in self.models]
+            raise ValueError(
+                f"Model '{id}' not found. Available models: {available}"
+            )
 
     def search_models(self, pattern: str | None = None):
         """
@@ -294,26 +251,6 @@ class ModelMap(BaseModel):
         return model.html_data.get_data()
 
 
-    def write_to_cache(self, pickle_file: str = CACHE_PICKLE) -> None:
-        """
-        Save a ModelMap object to disk as a compressed pickle file.
-
-        Uses gzip compression to reduce file size and I/O time.
-
-        Args:
-            model_map (ModelMap): The ModelMap object to cache.
-
-        Returns:
-            None
-        """
-
-        # Create cache directory if it doesn't exist
-        cache_dir = Path(pickle_file).parent
-        cache_dir.mkdir(parents=True, exist_ok=True)
-
-        with gzip.open(pickle_file + '.gz', 'wb') as f:
-            print(f'writing to compressed cache: {pickle_file}.gz')
-            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
@@ -552,136 +489,18 @@ def get_model_map(grouped_models):
     return catalog
 
 
-"""file operations"""
-
-
-def read_model_map_from_cache(pickle_file: str) -> ModelMap:
-    """
-    Load the cached ModelMap object from disk.
-
-    This function enables the MCP server to quickly restore a previously built ModelMap
-    from disk cache, avoiding the need to re-scan and re-parse all model files on
-    every server startup. This significantly improves server performance for large
-    model directories.
-
-    Args:
-        pickle_file (str): Path to the pickle cache file containing the serialized ModelMap.
-
-    Returns:
-        ModelMap: The deserialized ModelMap object loaded from cache.
-
-    Raises:
-        FileNotFoundError: If the pickle cache file doesn't exist.
-        pickle.UnpicklingError: If the cache file is corrupted or incompatible.
-
-    Note:
-        The MCP server should handle cases where the cache file doesn't exist or
-        is corrupted by falling back to rebuilding the ModelMap from the source directory.
-    """
-
-    # Try compressed file first, fall back to uncompressed
-    compressed_file = pickle_file + '.gz'
-    if os.path.exists(compressed_file):
-        with gzip.open(compressed_file, 'rb') as f:
-            print(f'reading compressed cache: {compressed_file}')
-            pc = pickle.load(f)
-    elif os.path.exists(pickle_file):
-        with open(pickle_file, 'rb') as f:
-            print(f'reading uncompressed cache: {pickle_file}')
-            pc = pickle.load(f)
-    else:
-        raise FileNotFoundError(f"Cache file not found: {pickle_file}")
-
-    return pc
 
 
 
 def initialize_model_map_from_directory(directory: str) -> ModelMap:
     """
-    Scan a directory for model files, build a ModelMap, and cache it to disk.
-
-    This function provides the MCP server with a complete model discovery and caching
-    workflow. It scans the specified directory for EnergyPlus model files, builds
-    a comprehensive ModelMap, and saves it to cache for future use.
+    Scan a directory for model files and build a ModelMap.
 
     Args:
         directory (str): Directory path to scan for EnergyPlus model files.
 
     Returns:
         ModelMap: Newly built ModelMap object containing all discovered models.
-
-    Side Effects:
-        - Writes the ModelMap to the default cache location (CACHE_PICKLE)
-        - Prints progress messages about cache operations
-
-    Note:
-        This function is typically called by the MCP server during initial setup
-        or when refreshing the model cache. It performs the full workflow of
-        discovery, parsing, organization, and caching.
     """
-
     catalog_info = catalog_path(directory)
-    model_map = get_model_map(catalog_info)
-
-
-    model_map.write_to_cache()
-
-    return model_map
-
-
-
-def reset_cache(pickle_file):
-
-    if os.path.exists(pickle_file):
-
-        os.remove(pickle_file)
-
-
-def read_or_initialize_model_map(directory: str, pickle_file: str = CACHE_PICKLE) -> ModelMap:
-    """
-    Load the ModelMap from cache if available and valid, otherwise rebuild.
-
-    Validates cache by checking if directory modification time is newer than cache file.
-    This ensures cache is invalidated when files are added/removed/modified.
-
-    Args:
-        directory (str): Directory to scan if cache is missing or stale.
-
-    Returns:
-        ModelMap: The loaded or newly built ModelMap object.
-    """
-
-    cache_valid = False
-
-    # Check both compressed and uncompressed cache files
-    compressed_file = pickle_file + '.gz'
-    cache_file_to_check = compressed_file if os.path.exists(compressed_file) else pickle_file
-
-    if os.path.exists(cache_file_to_check):
-        # Check if cache is newer than directory
-        cache_mtime = os.path.getmtime(cache_file_to_check)
-        try:
-            # Get latest modification time in directory tree
-            dir_mtime = os.path.getmtime(directory)
-            # Walk directory to find newest file
-            for root, dirs, files in os.walk(directory):
-                for file in files:
-                    if file.endswith(('.epJSON', '.sql', '.htm', '.html')):
-                        file_path = os.path.join(root, file)
-                        file_mtime = os.path.getmtime(file_path)
-                        dir_mtime = max(dir_mtime, file_mtime)
-
-            # Cache is valid if it's newer than all model files
-            cache_valid = cache_mtime > dir_mtime
-        except (OSError, FileNotFoundError):
-            cache_valid = False
-
-    if cache_valid:
-        print('reading model map from cache')
-        model_map = read_model_map_from_cache(pickle_file)
-    else:
-        print('initializing model map (cache missing or stale)')
-        model_map = initialize_model_map_from_directory(directory)
-        model_map.write_to_cache()
-
-    return model_map
+    return get_model_map(catalog_info)

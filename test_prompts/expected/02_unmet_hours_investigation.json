@@ -1,0 +1,43 @@
+{
+  "description": "Ground truth for unmet hours investigation using repo example-files",
+  "unmet_heating_hours_by_model": {
+    "Atlanta": {
+      "facility_total": 6.83,
+      "worst_zone": "ROOM_2_FLR_3",
+      "worst_zone_hours": 4.0
+    },
+    "Buffalo": {
+      "facility_total": 20.67,
+      "worst_zone": "ROOM_4_MULT19_FLR_3",
+      "worst_zone_hours": 14.67
+    }
+  },
+  "model_with_most_unmet": "Buffalo",
+  "worst_zone_overall": {
+    "name": "ROOM_4_MULT19_FLR_3",
+    "unmet_heating_hours": 14.67,
+    "note": "This is a multiplied zone (MULT19) representing 19 identical rooms on floor 3"
+  },
+  "sql_limitation": {
+    "zone_temp_variable_available": false,
+    "required_idf_addition": "Output:Variable, ROOM_4_MULT19_FLR_3, Zone Mean Air Temperature, Hourly;",
+    "explanation": "SQL has facility meters and boiler rates, but no zone-level temperature outputs"
+  },
+  "boiler_data": {
+    "available_in": "Buffalo only",
+    "variables": [
+      {"rdd_id": 5947, "name": "Boiler Heating Rate", "key": "HEATSYS1 BOILER1"},
+      {"rdd_id": 6005, "name": "Boiler Heating Rate", "key": "HEATSYS1 BOILER2"}
+    ],
+    "note": "Peak boiler day should correlate with design day conditions but may differ since design days are synthetic worst-case"
+  },
+  "sql_html_cross_check": {
+    "Buffalo": {
+      "sql_electricity_gj": 5105.50,
+      "html_electricity_gj": 5105.50,
+      "sql_gas_gj": 6658.12,
+      "html_gas_gj": 6658.12,
+      "match": true
+    }
+  }
+}

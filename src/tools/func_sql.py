@@ -2,12 +2,11 @@
 set of functions to open sql file, find table name, and parse it into a usable format as a dataframe.
 '''
 
-import glob as gb
-import os
-import sys
 import sqlite3
-import warnings
+import logging
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 from pydantic import BaseModel
 
@@ -85,11 +84,14 @@ class SqlTables(BaseModel):
         tabledf[string_col] = tabledf[lookup_col].apply(lambda x: stringdict[x])
         return tabledf
 
-    def _exec_query(self, query):
+    def _exec_query(self, query, params=None):
         conn = sqlite3.connect(self.sql_file)
         cursor = conn.cursor()
 
-        cursor.execute()
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
 
         rows = cursor.fetchall()
 
@@ -385,7 +387,7 @@ class SqlTimeseries(BaseModel):
         df = self._df_query("SELECT * FROM ReportDataDictionary WHERE ReportingFrequency = 'Hourly'")
         df.columns = rddcols
 
-        return df.to_dict(orient='records')
+        return df[['ReportDataDictionaryIndex', 'Name', 'KeyValue', 'Units']].to_dict(orient='records')
 
     def queryseries(self, filterquery):
         """
@@ -422,9 +424,9 @@ class SqlTimeseries(BaseModel):
         if len(labelquery) == 1:
             labelquery = labelquery[0]
         elif len(labelquery) > 1:
-            print(f'warning - multiple found for {labelquery}')
+            logger.warning(f'multiple found for rddid {rddid}')
         else:
-            print(f'none found for {labelquery}')
+            logger.warning(f'no results found for rddid {rddid}')
 
 
         ReportDataDictionaryIndex, IsMeter, Type, IndexGroup, TimestepType, KeyValue, Name, ReportingFrequency, ScheduleName, Units = labelquery
@@ -466,40 +468,3 @@ class SqlTimeseries(BaseModel):
 
         return dfp.to_dict('records')
 
-    def old_getseries(self, df: pd.DataFrame):
-        """
-        Given a filtered DataFrame, return the corresponding time series as a DataFrame with a datetime index.
-        Args:
-            df (pd.DataFrame): Filtered DataFrame from queryseries.
-        Returns:
-            pd.DataFrame: Pivoted DataFrame with datetime index and multi-index columns.
-        """
-
-
-        rddi = str(tuple(df.ReportDataDictionaryIndex))
-
-        listquery = 'SELECT "Value","ReportDataDictionaryIndex","TimeIndex" FROM "ReportData" WHERE "ReportDataDictionaryIndex" IN ' + rddi
-        df_query = self._df_query(listquery)
-
-
-        time = self._maketime()[['TimeIndex', 'dt']]
-
-        dfp = pd.merge(left=df_query, right=df, on='ReportDataDictionaryIndex')
-
-        dfp = pd.pivot_table(dfp, columns=['IndexGroup', 'TimestepType', 'KeyValue', 'Name', 'Units'], index='TimeIndex', values='Value')
-
-        timedict = time.set_index('TimeIndex').to_dict()['dt']
-
-        dfp = dfp.reset_index()
-
-        dfp['dt'] = dfp.apply(lambda x: timedict[int(x['TimeIndex'].values[0])], axis=1)
-
-        dfp = dfp.set_index('dt', drop=True)
-
-        dfp = dfp.drop("TimeIndex", axis=1)
-
-        idx = pd.MultiIndex.from_tuples(list(dfp.columns))
-
-        dfp.columns = idx
-
-        return dfp

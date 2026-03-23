@@ -1,7 +1,6 @@
 """Tests for HTML table retrieval and search."""
 
 import pandas as pd
-from src.dataloader import execute_pandas_query
 
 
 def test_report_names_count(atlanta_model):
@@ -20,18 +19,21 @@ def test_get_table_by_known_tuple(atlanta_model):
     result = atlanta_model.html_data.get_table_by_tuple(
         ("Entire Facility", "Annual Building Utility Performance Summary", "Site and Source Energy")
     )
-    assert isinstance(result, list)
-    assert len(result) == 4
-    assert "Total Energy [GJ]" in result[0]
+    assert isinstance(result, dict)
+    assert "columns" in result
+    assert "data" in result
+    assert len(result["data"]) == 4
+    assert "Total Energy [GJ]" in result["columns"]
 
 
 def test_site_and_source_energy_values(atlanta_model):
     result = atlanta_model.html_data.get_table_by_tuple(
         ("Entire Facility", "Annual Building Utility Performance Summary", "Site and Source Energy")
     )
-    first = result[0]
-    assert first[""] == "Total Site Energy"
-    assert float(first["Total Energy [GJ]"]) > 0
+    columns = result["columns"]
+    first_row = dict(zip(columns, result["data"][0]))
+    assert first_row[""] == "Total Site Energy"
+    assert float(first_row["Total Energy [GJ]"]) > 0
 
 
 def test_nonexistent_tuple_returns_empty(atlanta_model):
@@ -51,6 +53,5 @@ def test_pandas_on_html_table(atlanta_model):
     result = atlanta_model.html_data.get_table_by_tuple(
         ("Entire Facility", "Annual Building Utility Performance Summary", "Site and Source Energy")
     )
-    df = pd.DataFrame(result)
-    query_result = execute_pandas_query(df, "len(df)")
-    assert "4" in query_result
+    df = pd.DataFrame(result["data"], columns=result["columns"])
+    assert len(df) == 4
