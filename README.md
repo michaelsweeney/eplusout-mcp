@@ -216,6 +216,11 @@ Each simulation produces output files grouped by filename stem:
 | `.table.htm` | HTML summary reports (end uses, sizing, unmet hours) | `search_html_tables_by_keyword` or parse with Python |
 | `.err` | Error/warning log | Read directly |
 | `.rdd` | Report Data Dictionary (lists available output variables) | Read directly |
+| `.csv` | Timestep-level output variables (if requested in IDF) | Read with pandas |
+| `.eio` | Simulation initialization summary | Read directly |
+| `.mdd` | Meter Data Dictionary (available meter variables) | Read directly |
+
+EnergyPlus can produce additional output files depending on simulation settings (`.dxf` geometry, `.ssz`/`.zsz` sizing details, `.mtd` meter details, etc.). Support for new file types can be added by creating a parser in `src/tools/` for the MCP server pathway or a snippet in `claude-tools/snippets/` for the prompt-based pathway.
 
 ## Testing
 
