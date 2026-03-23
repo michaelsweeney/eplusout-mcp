@@ -32,19 +32,37 @@ Or just open Claude Code from this repo's root — it will pick up `claude-tools
 ```
 claude-tools/
 ├── CLAUDE.md              # Domain guide: file formats, units, gotchas, SQL schema
+├── commands/
+│   ├── eplus-scan.md      # /eplus-scan — discover models in a directory
+│   └── eplus-check.md     # /eplus-check — health check (errors, unmet hours, sizing)
 └── snippets/
     ├── parse_end_uses.py   # Parse HTML End Uses table
     ├── query_timeseries.py # Query SQL hourly timeseries
     └── unmet_hours.py      # Extract unmet setpoint hours
 ```
 
+### Slash Commands
+
+| Command | What it does |
+|---|---|
+| `/eplus-scan <directory>` | Discover models, list file types, flag design-day runs, check for fatal errors |
+| `/eplus-check <directory or model>` | Health check — error log review, unmet hours vs ASHRAE 300-hr threshold, energy sanity, sizing alerts |
+
 ### Usage
 
-Point Claude at your EnergyPlus output directory:
+Scan a directory to see what you're working with:
 
-> "Analyze the simulation results in `./output/` — compare heating loads across all models and identify any with unmet hours."
+> `/eplus-scan ./output/`
 
-Claude will discover the files, use the parsing snippets, and apply the domain knowledge from `CLAUDE.md` (unit conversions, metric disambiguation, etc.).
+Check model health:
+
+> `/eplus-check ./output/`
+
+Then ask questions naturally:
+
+> "Compare heating loads across all models and identify any with unmet hours."
+
+Claude will use the parsing snippets and domain knowledge from `CLAUDE.md` (unit conversions, metric disambiguation, etc.).
 
 ### When to use this
 
