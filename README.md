@@ -230,7 +230,37 @@ uv run pytest
 
 ## Evaluation
 
-We ran a [controlled evaluation](docs/eval-results-2026-03-22.md) comparing four approaches: MCP with pandas execution, MCP with pre-built aggregation, prompt-only with domain guide, and vanilla (no tools, no guide). Key finding: **domain knowledge had the largest impact on accuracy; server-side computation via `execute_pandas` was fastest.**
+We ran a [controlled evaluation](docs/eval-results-2026-03-22.md) comparing four approaches across 3 prompts of increasing complexity (2-model cross-reference, unmet hours investigation, 20-model batch analysis).
+
+### Results summary
+
+| Approach | Avg score | Best at |
+|---|---|---|
+| **Prompt-only** (domain guide + Bash/Python) | Highest | Accuracy, insight, completeness |
+| **Pandas-exec** (MCP + `execute_pandas`) | Close second | Speed, structured data access |
+| **Vanilla** (no tools, no guide) | Variable | Simple queries |
+| **Hybrid** (MCP + pre-built aggregation) | Lowest | — |
+
+**The prompt-based approach matched or outperformed MCP on accuracy in every evaluation.** Domain knowledge — knowing which HTML row to parse, which unmet-hours column to use, how to convert units — had a larger impact on correctness than the tool mechanism.
+
+### When MCP adds value
+
+Despite the prompt approach's strong showing on local file analysis, the MCP server has distinct advantages in other contexts:
+
+| Advantage | Why it matters |
+|---|---|
+| **Remote data access** | When simulation files live on a server, cloud storage, or shared drive that Claude can't reach via Bash. MCP is the only path to the data. |
+| **Server-side computation** | The `execute_pandas` sandbox runs pandas code without transferring 8760-hour datasets to the conversation. Essential for large models or slow connections. |
+| **Controlled execution environment** | Organizations can deploy the MCP server with specific data access policies, audit logging, and sandboxing — rather than giving Claude direct filesystem access. |
+| **Multi-user / hosted workflows** | A single MCP server can serve multiple users analyzing the same simulation library, without each user needing local copies. |
+| **Consistent tool interface** | MCP tools provide a stable API regardless of how files are organized on disk. File naming conventions, directory structures, and OS differences are handled by the server. |
+
+### Recommendation
+
+- **Local analysis?** Start with `claude-tools/` (prompt approach). It's simpler, fully transparent, and produces the most accurate results.
+- **Building a service or working with remote data?** Use the MCP server with `execute_pandas`. Merge the domain guide content into `src/CLAUDE.md` for best results.
+
+Full methodology, per-prompt breakdowns, and raw scores: [docs/eval-results-2026-03-22.md](docs/eval-results-2026-03-22.md)
 
 ## License
 
