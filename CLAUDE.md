@@ -26,7 +26,7 @@ uv sync
 uv run main.py
 ```
 
-See README.md for Claude Desktop and Claude Code configuration.
+See README.md for MCP client configuration.
 
 ## Architecture Overview
 
@@ -48,7 +48,7 @@ See README.md for Claude Desktop and Claude Code configuration.
   - Reads and searches building component definitions
 
 **MCP Server** (`src/server.py`):
-- FastMCP-based server exposing 6 tools to Claude
+- FastMCP-based server exposing 6 tools via MCP
 - Tools cover model management, HTML analysis, and timeseries extraction
 
 **Monitoring & Logging** (`src/monitor.py`):

@@ -1,4 +1,4 @@
-# EnergyPlus Analysis Tools for Claude Code
+# EnergyPlus Analysis Tools
 
 Use these instructions and snippets when analyzing EnergyPlus simulation output files locally. No MCP server required — parse files directly using Bash, Python, and SQLite.
 

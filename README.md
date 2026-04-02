@@ -1,17 +1,17 @@
-# EnergyPlus Output Tools for Claude
+# EnergyPlus Output Tools for Agentic Development
 
 AI-assisted analysis of EnergyPlus building energy simulation results. Two approaches, one repo:
 
 | Approach | Best for | What you need |
 |---|---|---|
-| **[Prompt Tools](#prompt-tools-local)** | Local files on your machine | Claude Code |
-| **[MCP Server](#mcp-server-remote)** | Remote files, hosted services, shared data | Claude Desktop or Claude Code + server |
+| **[Prompt Tools](#prompt-tools-local)** | Local files on your machine | An AI coding agent (e.g., Claude Code) |
+| **[MCP Server](#mcp-server-remote)** | Remote files, hosted services, shared data | Any MCP-compatible client + server |
 
 Both share the same domain knowledge — EnergyPlus file formats, unit conventions, parsing logic, and common gotchas.
 
 ## Prompt Tools (Local)
 
-**No server required.** Claude Code parses EnergyPlus output files directly using Bash, Python, and SQLite, guided by domain knowledge and vetted snippets.
+**No server required.** Your AI agent parses EnergyPlus output files directly using Bash, Python, and SQLite, guided by domain knowledge and vetted snippets.
 
 ### Setup
 
@@ -25,7 +25,7 @@ ln -s /path/to/eplusout-mcp/claude-tools /path/to/your-project/.claude/eplus
 ln -s /path/to/eplusout-mcp/claude-tools ~/.claude/eplus
 ```
 
-Or just open Claude Code from this repo's root — it will pick up `claude-tools/CLAUDE.md` automatically.
+Or just open your AI coding agent from this repo's root — it will pick up `claude-tools/CLAUDE.md` automatically.
 
 ### What's included
 
@@ -62,7 +62,7 @@ Then ask questions naturally:
 
 > "Compare heating loads across all models and identify any with unmet hours."
 
-Claude will use the parsing snippets and domain knowledge from `CLAUDE.md` (unit conversions, metric disambiguation, etc.).
+The agent will use the parsing snippets and domain knowledge from `CLAUDE.md` (unit conversions, metric disambiguation, etc.).
 
 ### When to use this
 
@@ -85,7 +85,7 @@ A [Model Context Protocol](https://modelcontextprotocol.io/) server that provide
 ### Prerequisites
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager)
-- [Claude Desktop](https://claude.ai/download) or [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- An MCP-compatible client (e.g., [Claude Desktop](https://claude.ai/download), [Claude Code](https://docs.anthropic.com/en/docs/claude-code), or any [MCP client](https://modelcontextprotocol.io/clients))
 
 ### Install
 
@@ -95,17 +95,11 @@ cd eplusout-mcp
 uv sync
 ```
 
-### Configure Claude Desktop
+### Configure Your MCP Client
 
-Open your Claude Desktop config file:
+The server runs via `uv run main.py`. Configure it in your MCP client of choice:
 
-| OS | Config file location |
-|---|---|
-| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
-| Linux | `~/.config/Claude/claude_desktop_config.json` |
-
-Add the server entry:
+**Claude Desktop** — Open your config file (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows, `~/.config/Claude/claude_desktop_config.json` on Linux):
 
 ```json
 {
@@ -118,11 +112,13 @@ Add the server entry:
 }
 ```
 
-### Configure Claude Code
+**Claude Code:**
 
 ```bash
 claude mcp add eplus_outputs -- uv --directory /path/to/eplusout-mcp run main.py
 ```
+
+**Other MCP clients** — Point your client at the command `uv --directory /path/to/eplusout-mcp run main.py` using stdio transport.
 
 ### Available Tools
 
@@ -151,7 +147,7 @@ claude mcp add eplus_outputs -- uv --directory /path/to/eplusout-mcp run main.py
 
 ### The `execute_pandas` Tool
 
-The core analysis tool. Claude writes Python/pandas code; the server executes it in a sandboxed environment against pre-loaded DataFrames.
+The core analysis tool. The AI agent writes Python/pandas code; the server executes it in a sandboxed environment against pre-loaded DataFrames.
 
 **Available variables in the sandbox:**
 - `sql_ts` — DataFrame with hourly timeseries (datetime index, columns named `"{KeyValue}:{Name} [{Units}]"`)
@@ -249,9 +245,9 @@ Despite the prompt approach's strong showing on local file analysis, the MCP ser
 
 | Advantage | Why it matters |
 |---|---|
-| **Remote data access** | When simulation files live on a server, cloud storage, or shared drive that Claude can't reach via Bash. MCP is the only path to the data. |
+| **Remote data access** | When simulation files live on a server, cloud storage, or shared drive that the agent can't reach via Bash. MCP is the only path to the data. |
 | **Server-side computation** | The `execute_pandas` sandbox runs pandas code without transferring 8760-hour datasets to the conversation. Essential for large models or slow connections. |
-| **Controlled execution environment** | Organizations can deploy the MCP server with specific data access policies, audit logging, and sandboxing — rather than giving Claude direct filesystem access. |
+| **Controlled execution environment** | Organizations can deploy the MCP server with specific data access policies, audit logging, and sandboxing — rather than giving the agent direct filesystem access. |
 | **Multi-user / hosted workflows** | A single MCP server can serve multiple users analyzing the same simulation library, without each user needing local copies. |
 | **Consistent tool interface** | MCP tools provide a stable API regardless of how files are organized on disk. File naming conventions, directory structures, and OS differences are handled by the server. |
 
