@@ -1,6 +1,6 @@
 # EnergyPlus Output Tools for Agentic Development
 
-AI-assisted analysis of EnergyPlus building energy simulation results. Two approaches, one repo:
+AI-assisted analysis of EnergyPlus building energy simulation results. This was initially developed as an MCP Server, but a prompt tool environemnt was added in light of recent advances in Claude Code -- and to serve as a second methodology to benchmark and test against.
 
 | Approach | Best for | What you need |
 |---|---|---|
