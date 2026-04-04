@@ -27,7 +27,7 @@ MCP_TOOLS_HYBRID+=",mcp__eplus_outputs__get_timeseries_stats"
 # ─── Usage ───────────────────────────────────────────────────────────────────
 usage() {
     cat <<EOF
-Usage: $0 <prompt_name> <mode>
+Usage: $0 <prompt_name> <mode> [grade-models-mode]
 
 Modes:
   vanilla        Bash/Read/Grep/Glob only, no MCP, no domain knowledge
@@ -36,6 +36,7 @@ Modes:
   prompt-only    Bash/Read/Grep/Glob only, no MCP, but with EnergyPlus domain guide as system prompt
   all            Run all 4 modes sequentially
   grade          Grade all available results against expected answers
+  grade-models   Grade same prompt+mode across models (opus, sonnet, haiku)
 
   Backward-compat aliases:
   with-mcp       Alias for pandas-exec
@@ -53,6 +54,7 @@ Examples:
   $0 02_unmet_hours_investigation hybrid
   MODEL=opus $0 01_cross_reference_meters pandas-exec
   $0 01_cross_reference_meters grade
+  $0 01_cross_reference_meters grade-models pandas-exec
 EOF
     exit 1
 }
@@ -261,6 +263,98 @@ GRADEEOF
     cat "$grade_out"
 }
 
+grade_models() {
+    local gm_mode="${1:?Usage: $0 <prompt_name> grade-models <mode>}"
+    local models=("opus" "sonnet" "haiku")
+    local grade_out="$RESULTS_DIR/${PROMPT_NAME}_${gm_mode}_grade-models.md"
+
+    [[ ! -f "$EXPECTED_FILE" ]] && echo "Error: expected answers not found: $EXPECTED_FILE" && exit 1
+
+    # At least one result must exist and be non-empty
+    local any_found=0
+    for m in "${models[@]}"; do
+        [[ -s "$RESULTS_DIR/${PROMPT_NAME}_${gm_mode}_${m}.md" ]] && any_found=1
+    done
+    if [[ $any_found -eq 0 ]]; then
+        echo "Error: no results to grade for mode '$gm_mode'. Run the mode with different MODEL= values first."
+        echo "  Expected files like: ${PROMPT_NAME}_${gm_mode}_{opus,sonnet,haiku}.md"
+        exit 1
+    fi
+
+    # Build response header lines
+    local response_header=""
+    local label_idx=0
+    local labels=("A" "B" "C")
+    for m in "${models[@]}"; do
+        local rf="$RESULTS_DIR/${PROMPT_NAME}_${gm_mode}_${m}.md"
+        local tf="$RESULTS_DIR/${PROMPT_NAME}_${gm_mode}_${m}.time"
+        if [[ -s "$rf" ]]; then
+            response_header+="- Response ${labels[$label_idx]} (\"${m}\"): Claude ${m}, mode=${gm_mode}. Wall time: $(cat "$tf" 2>/dev/null || echo "N/A")s"$'\n'
+        fi
+        label_idx=$((label_idx + 1))
+    done
+
+    # Build response body sections
+    local response_bodies=""
+    label_idx=0
+    for m in "${models[@]}"; do
+        local rf="$RESULTS_DIR/${PROMPT_NAME}_${gm_mode}_${m}.md"
+        if [[ -s "$rf" ]]; then
+            response_bodies+=$'\n## Response '"${labels[$label_idx]}"' — Claude '"${m}"' (mode='"${gm_mode}"$')\n'
+            response_bodies+="$(cat "$rf")"$'\n'
+        fi
+        label_idx=$((label_idx + 1))
+    done
+
+    local grade_prompt
+    grade_prompt="$(cat <<GRADEEOF
+You are grading AI responses to the same EnergyPlus analysis prompt.
+Each was produced by a different Claude model using the same toolset (mode=${gm_mode}):
+${response_header}
+## Expected Answers (ground truth)
+\`\`\`json
+$(cat "$EXPECTED_FILE")
+\`\`\`
+
+## The Original Prompt
+$(cat "$PROMPT_FILE")
+${response_bodies}
+## Grading Instructions
+
+Score each available response on these dimensions (1-5 scale, 5 = best):
+
+| Dimension | What to evaluate |
+|-----------|-----------------|
+| **Correctness** | Do reported values match expected answers exactly? (most important) |
+| **Completeness** | Were all parts of the prompt addressed? |
+| **Efficiency** | Was the approach direct, or did it thrash/retry/take unnecessary steps? |
+| **Insight** | Did the response add useful interpretation beyond raw numbers? |
+| **Graceful degradation** | When data was missing, did it explain what was needed and why? |
+
+For each dimension, give a score and a one-line justification for each response that exists.
+
+Then provide:
+1. A summary comparison table (only columns for responses that were run)
+2. An overall verdict: which model performed best and why
+3. Observations on model differences — did larger models produce more accurate results? Better insight? Were smaller models surprisingly competitive?
+GRADEEOF
+)"
+
+    echo "╔══════════════════════════════════════════════════╗"
+    echo "║  GRADING MODELS │ mode=$gm_mode"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo ""
+
+    claude -p "$grade_prompt" \
+        --model "$MODEL" \
+        --output-format text \
+        > "$grade_out" 2>&1
+
+    echo "  Grade report: $grade_out"
+    echo ""
+    cat "$grade_out"
+}
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 case "$MODE" in
     vanilla)        run_vanilla ;;
@@ -269,6 +363,7 @@ case "$MODE" in
     prompt-only)    run_prompt_only ;;
     all)            run_vanilla; run_pandas_exec; run_hybrid; run_prompt_only ;;
     grade)          grade ;;
+    grade-models)   grade_models "${3:-}" ;;
     # Backward-compat aliases
     with-mcp)       run_pandas_exec ;;
     without-mcp)    run_vanilla ;;
