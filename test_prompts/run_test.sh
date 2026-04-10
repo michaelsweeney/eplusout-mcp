@@ -11,7 +11,7 @@ MODEL="${MODEL:-sonnet}"
 
 # MCP tools — must match the tool names Claude Code registers for this server
 
-# For pandas-exec mode: discovery + HTML + execute_pandas
+# For mcp-pandas-exec mode: discovery + HTML + execute_pandas
 MCP_TOOLS_PANDAS="mcp__eplus_outputs__initialize_model_map"
 MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__get_available_models"
 MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__search_html_tables_by_keyword"
@@ -19,10 +19,10 @@ MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__get_html_table_by_tuple"
 MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__get_sql_available_hourlies"
 MCP_TOOLS_PANDAS+=",mcp__eplus_outputs__execute_pandas"
 
-# For hybrid mode: pandas-exec tools + pre-built aggregation tools
-MCP_TOOLS_HYBRID="$MCP_TOOLS_PANDAS"
-MCP_TOOLS_HYBRID+=",mcp__eplus_outputs__get_end_uses"
-MCP_TOOLS_HYBRID+=",mcp__eplus_outputs__get_timeseries_stats"
+# For mcp-pandas-exec-plus mode: pandas-exec tools + pre-built aggregation tools
+MCP_TOOLS_PLUS="$MCP_TOOLS_PANDAS"
+MCP_TOOLS_PLUS+=",mcp__eplus_outputs__get_end_uses"
+MCP_TOOLS_PLUS+=",mcp__eplus_outputs__get_timeseries_stats"
 
 # ─── Usage ───────────────────────────────────────────────────────────────────
 usage() {
@@ -30,18 +30,20 @@ usage() {
 Usage: $0 <prompt_name> <mode> [grade-models-mode]
 
 Modes:
-  vanilla        Bash/Read/Grep/Glob only, no MCP, no domain knowledge
-  pandas-exec    MCP tools (discovery + HTML + execute_pandas) + Bash/Read/Grep/Glob
-  hybrid         MCP tools (pandas-exec + get_end_uses + get_timeseries_stats) + Bash/Read/Grep/Glob
-  prompt-only    Bash/Read/Grep/Glob only, no MCP, but with EnergyPlus domain guide as system prompt
-  all            Run all 4 modes sequentially
-  grade          Grade all available results against expected answers
-  grade-models   Grade same prompt+mode across models (opus, sonnet, haiku)
+  vanilla              Bash/Read/Grep/Glob only, no MCP, no domain knowledge
+  mcp-pandas-exec      MCP tools (discovery + HTML + execute_pandas) + Bash/Read/Grep/Glob
+  mcp-pandas-exec-plus MCP tools (mcp-pandas-exec + get_end_uses + get_timeseries_stats) + Bash/Read/Grep/Glob
+  prompt-only          Bash/Read/Grep/Glob only, no MCP, but with EnergyPlus domain guide as system prompt
+  all                  Run all 4 modes sequentially
+  grade                Grade all available results against expected answers
+  grade-models         Grade same prompt+mode across models (opus, sonnet, haiku)
 
   Backward-compat aliases:
-  with-mcp       Alias for pandas-exec
+  with-mcp       Alias for mcp-pandas-exec
   without-mcp    Alias for vanilla
-  both           Alias for: vanilla then pandas-exec
+  pandas-exec    Alias for mcp-pandas-exec
+  hybrid         Alias for mcp-pandas-exec-plus
+  both           Alias for: vanilla then mcp-pandas-exec
 
 Options (via env vars):
   MODEL=sonnet   Claude model to use (sonnet, opus, haiku)
@@ -51,10 +53,10 @@ $(ls "$PROMPTS_DIR"/*.md 2>/dev/null | xargs -I{} basename {} .md | sed 's/^/  /
 
 Examples:
   $0 01_cross_reference_meters all
-  $0 02_unmet_hours_investigation hybrid
-  MODEL=opus $0 01_cross_reference_meters pandas-exec
+  $0 02_unmet_hours_investigation mcp-pandas-exec-plus
+  MODEL=opus $0 01_cross_reference_meters mcp-pandas-exec
   $0 01_cross_reference_meters grade
-  $0 01_cross_reference_meters grade-models pandas-exec
+  $0 01_cross_reference_meters grade-models mcp-pandas-exec
 EOF
     exit 1
 }
@@ -94,11 +96,11 @@ run_vanilla() {
     echo ""
 }
 
-run_pandas_exec() {
-    local outfile="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.md"
-    local timefile="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.time"
+run_mcp_pandas_exec() {
+    local outfile="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec_${MODEL}.md"
+    local timefile="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec_${MODEL}.time"
     echo "╔══════════════════════════════════════════════════╗"
-    echo "║  PANDAS-EXEC (MCP + execute_pandas) │ model=$MODEL"
+    echo "║  MCP-PANDAS-EXEC (MCP + execute_pandas) │ model=$MODEL"
     echo "╚══════════════════════════════════════════════════╝"
     echo ""
 
@@ -116,18 +118,18 @@ run_pandas_exec() {
     echo ""
 }
 
-run_hybrid() {
-    local outfile="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.md"
-    local timefile="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.time"
+run_mcp_pandas_exec_plus() {
+    local outfile="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec-plus_${MODEL}.md"
+    local timefile="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec-plus_${MODEL}.time"
     echo "╔══════════════════════════════════════════════════╗"
-    echo "║  HYBRID (MCP + aggregation tools) │ model=$MODEL"
+    echo "║  MCP-PANDAS-EXEC-PLUS (MCP + aggregation tools) │ model=$MODEL"
     echo "╚══════════════════════════════════════════════════╝"
     echo ""
 
     TIMEFORMAT='%R'
     { time ( cd "$REPO_DIR" && claude -p "$(cat "$PROMPT_FILE")" \
         --model "$MODEL" \
-        --allowedTools "$MCP_TOOLS_HYBRID,Bash,Read,Grep,Glob" \
+        --allowedTools "$MCP_TOOLS_PLUS,Bash,Read,Grep,Glob" \
         --append-system-prompt "You have EnergyPlus MCP tools available including execute_pandas, get_end_uses, and get_timeseries_stats. Use these tools directly — do NOT ask for permission, do NOT ask the user to approve tools. All tools listed in --allowedTools are pre-approved. If an MCP tool call fails, fall back to Bash/Read/Grep/Glob." \
         --output-format text \
         > "$outfile" 2>&1 ) || true ; } 2> "$timefile"
@@ -167,12 +169,12 @@ $(cat "$domain_guide")" \
 
 grade() {
     local vanilla_file="$RESULTS_DIR/${PROMPT_NAME}_vanilla_${MODEL}.md"
-    local pandas_file="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.md"
-    local hybrid_file="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.md"
+    local pandas_file="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec_${MODEL}.md"
+    local hybrid_file="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec-plus_${MODEL}.md"
     local prompt_only_file="$RESULTS_DIR/${PROMPT_NAME}_prompt-only_${MODEL}.md"
     local vanilla_time="$RESULTS_DIR/${PROMPT_NAME}_vanilla_${MODEL}.time"
-    local pandas_time="$RESULTS_DIR/${PROMPT_NAME}_pandas-exec_${MODEL}.time"
-    local hybrid_time="$RESULTS_DIR/${PROMPT_NAME}_hybrid_${MODEL}.time"
+    local pandas_time="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec_${MODEL}.time"
+    local hybrid_time="$RESULTS_DIR/${PROMPT_NAME}_mcp-pandas-exec-plus_${MODEL}.time"
     local prompt_only_time="$RESULTS_DIR/${PROMPT_NAME}_prompt-only_${MODEL}.time"
     local grade_out="$RESULTS_DIR/${PROMPT_NAME}_grade_${MODEL}.md"
 
@@ -191,8 +193,8 @@ grade() {
     # Build response header lines (only for files that exist and are non-empty)
     local response_header=""
     [[ -s "$vanilla_file" ]] && response_header+="- Response A (\"Vanilla\"): Bash/Read/Grep/Glob only. Wall time: $(cat "$vanilla_time" 2>/dev/null || echo "N/A")s"$'\n'
-    [[ -s "$pandas_file" ]] && response_header+="- Response B (\"Pandas-Exec\"): MCP tools with pandas execution. Wall time: $(cat "$pandas_time" 2>/dev/null || echo "N/A")s"$'\n'
-    [[ -s "$hybrid_file" ]] && response_header+="- Response C (\"Hybrid\"): MCP tools with pandas execution + pre-built aggregation. Wall time: $(cat "$hybrid_time" 2>/dev/null || echo "N/A")s"$'\n'
+    [[ -s "$pandas_file" ]] && response_header+="- Response B (\"MCP-Pandas-Exec\"): MCP tools with pandas execution. Wall time: $(cat "$pandas_time" 2>/dev/null || echo "N/A")s"$'\n'
+    [[ -s "$hybrid_file" ]] && response_header+="- Response C (\"MCP-Pandas-Exec-Plus\"): MCP tools with pandas execution + pre-built aggregation. Wall time: $(cat "$hybrid_time" 2>/dev/null || echo "N/A")s"$'\n'
     [[ -s "$prompt_only_file" ]] && response_header+="- Response D (\"Prompt-Only\"): Bash/Read/Grep/Glob with EnergyPlus domain guide. Wall time: $(cat "$prompt_only_time" 2>/dev/null || echo "N/A")s"$'\n'
 
     # Build response body sections (only for files that exist and are non-empty)
@@ -202,11 +204,11 @@ grade() {
         response_bodies+="$(cat "$vanilla_file")"$'\n'
     fi
     if [[ -s "$pandas_file" ]]; then
-        response_bodies+=$'\n## Response B — Pandas-Exec (MCP + execute_pandas)\n'
+        response_bodies+=$'\n## Response B — MCP-Pandas-Exec (MCP + execute_pandas)\n'
         response_bodies+="$(cat "$pandas_file")"$'\n'
     fi
     if [[ -s "$hybrid_file" ]]; then
-        response_bodies+=$'\n## Response C — Hybrid (MCP + pre-built aggregation tools)\n'
+        response_bodies+=$'\n## Response C — MCP-Pandas-Exec-Plus (MCP + pre-built aggregation tools)\n'
         response_bodies+="$(cat "$hybrid_file")"$'\n'
     fi
     if [[ -s "$prompt_only_file" ]]; then
@@ -357,18 +359,20 @@ GRADEEOF
 
 # ─── Main ────────────────────────────────────────────────────────────────────
 case "$MODE" in
-    vanilla)        run_vanilla ;;
-    pandas-exec)    run_pandas_exec ;;
-    hybrid)         run_hybrid ;;
-    prompt-only)    run_prompt_only ;;
-    all)            run_vanilla; run_pandas_exec; run_hybrid; run_prompt_only ;;
-    grade)          grade ;;
-    grade-models)   grade_models "${3:-}" ;;
+    vanilla)              run_vanilla ;;
+    mcp-pandas-exec)      run_mcp_pandas_exec ;;
+    mcp-pandas-exec-plus) run_mcp_pandas_exec_plus ;;
+    prompt-only)          run_prompt_only ;;
+    all)                  run_vanilla; run_mcp_pandas_exec; run_mcp_pandas_exec_plus; run_prompt_only ;;
+    grade)                grade ;;
+    grade-models)         grade_models "${3:-}" ;;
     # Backward-compat aliases
-    with-mcp)       run_pandas_exec ;;
-    without-mcp)    run_vanilla ;;
-    both)           run_vanilla; run_pandas_exec ;;
-    *)              usage ;;
+    pandas-exec)          run_mcp_pandas_exec ;;
+    hybrid)               run_mcp_pandas_exec_plus ;;
+    with-mcp)             run_mcp_pandas_exec ;;
+    without-mcp)          run_vanilla ;;
+    both)                 run_vanilla; run_mcp_pandas_exec ;;
+    *)                    usage ;;
 esac
 
 echo ""
