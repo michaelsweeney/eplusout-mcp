@@ -7,7 +7,7 @@ AI-assisted analysis of EnergyPlus building energy simulation results. This was 
 | **[Pattern 1: Prompt Tools](#pattern-1-prompt-tools-local)** | Local files on your machine | An AI coding agent (e.g., Claude Code) |
 | **[Pattern 2: MCP Server](#pattern-2-mcp-server-remote)** | Remote files, hosted services, shared data | Any MCP-compatible client + server |
 
-Both share the same domain knowledge — EnergyPlus file formats, unit conventions, parsing logic, and common gotchas.
+Both target the same EnergyPlus output formats. Pattern 1 includes richer local domain guidance and snippets; Pattern 2 exposes structured MCP APIs.
 
 ## Pattern 1: Prompt Tools (Local)
 
@@ -25,7 +25,7 @@ ln -s /path/to/eplusout-mcp/claude-tools /path/to/your-project/.claude/eplus
 ln -s /path/to/eplusout-mcp/claude-tools ~/.claude/eplus
 ```
 
-Or just open your AI coding agent from this repo's root — it will pick up `claude-tools/CLAUDE.md` automatically.
+Or open your AI coding agent from inside `claude-tools/`, or symlink that directory into your project's `.claude/`.
 
 ### What's included
 
@@ -74,7 +74,7 @@ The agent will use the parsing snippets and domain knowledge from `CLAUDE.md` (u
 
 ## Pattern 2: MCP Server (Remote)
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) server that provides structured access to EnergyPlus output data — model discovery, HTML table queries, timeseries extraction, and EnergyPlus object schema lookup.
+A [Model Context Protocol](https://modelcontextprotocol.io/) server that provides structured access to EnergyPlus output data — model discovery, HTML table queries, timeseries extraction, and EnergyPlus input-object schema lookup from the bundled JSON schema.
 
 ### When to use this
 
@@ -164,8 +164,10 @@ claude mcp add eplus_outputs -- uv --directory /path/to/eplusout-mcp run main.py
 
 ```
 eplusout-mcp/
+├── main.py                 # MCP server entry point (loads src/server.py)
 ├── claude-tools/           # Prompt-based tools (local use)
 │   ├── CLAUDE.md           # Domain guide
+│   ├── commands/           # /eplus-scan and /eplus-check slash commands
 │   └── snippets/           # Vetted Python parsing functions
 ├── src/                    # MCP server (hosted/remote use)
 │   ├── server.py           # MCP tool definitions
@@ -186,7 +188,7 @@ Each simulation produces output files grouped by filename stem:
 
 | Extension | Contents | Access method |
 |---|---|---|
-| `.epJSON` | Input model definition (geometry, HVAC, schedules) | Read directly (JSON) |
+| `.epJSON` | Input model definition (geometry, HVAC, schedules) | Read directly (JSON); Pattern 2 returns the file path only — no MCP tool reads `.epJSON` contents |
 | `.sql` | SQLite results database (hourly timeseries, tabular data) | `get_timeseries_report_by_rddid_list` or `sqlite3` |
 | `.table.htm` | HTML summary reports (end uses, sizing, unmet hours) | `search_html_tables_by_keyword` or parse with Python |
 | `.err` | Error/warning log | Read directly |
@@ -207,6 +209,8 @@ uv run pytest
 
 We ran a [controlled evaluation](docs/eval-results-2026-03-22.md) comparing four approaches across 3 prompts of increasing complexity (2-model cross-reference, unmet hours investigation, 20-model batch analysis).
 
+Three of the four conditions ran on archived experiment tags; `main` only includes the seven MCP tools listed above.
+
 ### Results summary
 
 | Approach | Avg score | Best at |
@@ -225,7 +229,7 @@ Despite the prompt approach's strong showing on local file analysis, the MCP ser
 | Advantage | Why it matters |
 |---|---|
 | **Remote data access** | When simulation files live on a server, cloud storage, or shared drive that the agent can't reach via Bash. MCP is the only path to the data. |
-| **Server-side computation** | An MCP server can run aggregations and filters server-side rather than transferring full 8760-hour datasets to the conversation — essential for large models or slow connections. The experimental [`execute_pandas`](../../tree/exp/pandas-exec-v1) sandbox demonstrates this; the `main` server currently returns full timeseries unprocessed. |
+| **Server-side computation** | An MCP server can run aggregations and filters server-side rather than transferring full 8760-hour datasets to the conversation — essential for large models or slow connections. The experimental [`execute_pandas`](../../tree/exp/pandas-exec-v1) sandbox demonstrates this; the `main` server returns raw timeseries and may truncate large responses. |
 | **Controlled execution environment** | Organizations can deploy the MCP server with specific data access policies, audit logging, and sandboxing — rather than giving the agent direct filesystem access. |
 | **Multi-user / hosted workflows** | A single MCP server can serve multiple users analyzing the same simulation library, without each user needing local copies. |
 | **Consistent tool interface** | MCP tools provide a stable API regardless of how files are organized on disk. File naming conventions, directory structures, and OS differences are handled by the server. |
@@ -239,14 +243,14 @@ Full methodology, per-prompt breakdowns, and raw scores: [docs/eval-results-2026
 
 ### Exploration branches
 
-The four eval conditions were built on separate branches and are archived as tags so the code behind each result remains inspectable:
+The three experimental eval conditions are archived as tags so the code behind each result remains inspectable; the Vanilla baseline corresponds to `main`.
 
-| Approach | Tag | What it adds on top of `main` |
+| Approach | Tag | What was tested |
 |---|---|---|
-| Prompt-only | [`exp/prompt-only-v1`](../../tree/exp/prompt-only-v1) | EnergyPlus domain guide + vetted parsing snippets (no extra MCP code) |
+| Prompt-only | [`exp/prompt-only-v1`](../../tree/exp/prompt-only-v1) | EnergyPlus domain guide + vetted parsing snippets (the precursor to today's `claude-tools/`) |
 | Pandas-exec | [`exp/pandas-exec-v1`](../../tree/exp/pandas-exec-v1) | `execute_pandas` sandbox + LRU data loader |
 | Hybrid | [`exp/hybrid-v1`](../../tree/exp/hybrid-v1) | Pandas-exec plus pre-built helpers (`get_end_uses`, `get_timeseries_stats`) |
-| Vanilla | `main` (this branch) | Baseline MCP server with no eval-specific additions |
+| Vanilla | `main` | Baseline MCP server (the seven tools listed above), no eval-specific additions |
 
 These branches are exploratory and not maintained — they exist as a record of what was tested.
 
