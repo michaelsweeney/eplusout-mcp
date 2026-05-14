@@ -1,15 +1,15 @@
 # EnergyPlus Output Tools for Agentic Development
 
-AI-assisted analysis of EnergyPlus building energy simulation results. This was initially developed as an MCP Server, but a prompt tool environemnt was added in light of recent advances in Claude Code -- and to serve as a second methodology to benchmark and test against.
+AI-assisted analysis of EnergyPlus building energy simulation results. This was initially developed as an MCP server, but a prompt-based tool environment was added in light of recent advances in Claude Code — and to serve as a second methodology to benchmark and test against.
 
 | Approach | Best for | What you need |
 |---|---|---|
-| **[Prompt Tools](#prompt-tools-local)** | Local files on your machine | An AI coding agent (e.g., Claude Code) |
-| **[MCP Server](#mcp-server-remote)** | Remote files, hosted services, shared data | Any MCP-compatible client + server |
+| **[Pattern 1: Prompt Tools](#pattern-1-prompt-tools-local)** | Local files on your machine | An AI coding agent (e.g., Claude Code) |
+| **[Pattern 2: MCP Server](#pattern-2-mcp-server-remote)** | Remote files, hosted services, shared data | Any MCP-compatible client + server |
 
 Both share the same domain knowledge — EnergyPlus file formats, unit conventions, parsing logic, and common gotchas.
 
-## Prompt Tools (Local)
+## Pattern 1: Prompt Tools (Local)
 
 **No server required.** Your AI agent parses EnergyPlus output files directly using Bash, Python, and SQLite, guided by domain knowledge and vetted snippets.
 
@@ -72,15 +72,15 @@ The agent will use the parsing snippets and domain knowledge from `CLAUDE.md` (u
 
 ---
 
-## MCP Server (Remote)
+## Pattern 2: MCP Server (Remote)
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) server that provides structured access to EnergyPlus output data. Includes a sandboxed pandas execution environment for server-side computation.
+A [Model Context Protocol](https://modelcontextprotocol.io/) server that provides structured access to EnergyPlus output data — model discovery, HTML table queries, timeseries extraction, and EnergyPlus object schema lookup.
 
 ### When to use this
 
 - Output files are on a remote server, cloud storage, or shared drive
 - You're building a hosted service where users don't have direct file access
-- You need server-side computation (e.g., aggregating 8760-hour timeseries without transferring all the data)
+- The client doesn't have Bash/Python execution (i.e., it's not Claude Code) and needs a structured tool API
 
 ### Prerequisites
 
@@ -138,44 +138,25 @@ claude mcp add eplus_outputs -- uv --directory /path/to/eplusout-mcp run main.py
 | Tool | Purpose |
 |---|---|
 | `get_sql_available_hourlies(id)` | List available hourly variables with RDD IDs |
-| `execute_pandas(model_id, code)` | Run pandas code against pre-loaded DataFrames |
+| `get_timeseries_report_by_rddid_list(model_id, rddid)` | Extract hourly timeseries data by RDD ID(s) — accepts a single ID or list |
 
 #### Schema
 | Tool | Purpose |
 |---|---|
-| `get_eplus_object_schema(object_type)` | Look up EnergyPlus object field definitions |
-
-### The `execute_pandas` Tool
-
-The core analysis tool. The AI agent writes Python/pandas code; the server executes it in a sandboxed environment against pre-loaded DataFrames.
-
-**Available variables in the sandbox:**
-- `sql_ts` — DataFrame with hourly timeseries (datetime index, columns named `"{KeyValue}:{Name} [{Units}]"`)
-- `html_tables` — Dict of `{(report_for, report_name, table_name): DataFrame}`
-- `model_info` — Dict with model metadata
-- `pd` — pandas, `np` — numpy
-
-**Security:** No filesystem, network, or import access. AST-validated before execution. 30-second timeout. [Details →](docs/eval-results-2026-03-22.md#appendix-b-sandbox-security-model)
-
-**Example:**
-```python
-# Annual electricity in GJ
-sql_ts["None:Electricity:Facility [J]"].sum() / 1e9
-
-# Peak cooling day — 24-hour profile
-col = [c for c in sql_ts.columns if "Cooling" in c][0]
-peak = sql_ts[col].idxmax()
-sql_ts.loc[peak.normalize():peak.normalize() + pd.Timedelta(hours=23), col]
-```
+| `get_eplus_object_schema(object_type, version?)` | Look up EnergyPlus object field definitions from the JSON schema |
 
 ### Workflow
 
 ```
-1. initialize_model_map(directory)        → scan for models
-2. get_available_models()                 → get model IDs
-3. search_html_tables_by_keyword(...)     → find relevant tables
-4. execute_pandas(model_id, code)         → analyze data
+1. initialize_model_map(directory)            → scan for models
+2. get_available_models()                     → get model IDs and file paths
+3. search_html_tables_by_keyword(...)         → find relevant HTML tables
+   get_html_table_by_tuple(id, query_tuple)   → retrieve a specific table
+4. get_sql_available_hourlies(id)             → list available hourly variables
+   get_timeseries_report_by_rddid_list(...)   → extract timeseries data
 ```
+
+> **Server-side pandas execution** was prototyped as an extension to this server (an `execute_pandas` tool with a sandboxed Python environment and pre-loaded DataFrames) and evaluated in the writeup below. It is not part of `main` — see the [`exp/pandas-exec-v1`](../../tree/exp/pandas-exec-v1) and [`exp/hybrid-v1`](../../tree/exp/hybrid-v1) tags for the implementation.
 
 ---
 
@@ -188,12 +169,10 @@ eplusout-mcp/
 │   └── snippets/           # Vetted Python parsing functions
 ├── src/                    # MCP server (hosted/remote use)
 │   ├── server.py           # MCP tool definitions
-│   ├── sandbox.py          # Sandboxed code execution
-│   ├── data_loader.py      # DataFrame construction + caching
 │   ├── model_data.py       # Model discovery
 │   ├── monitor.py          # Logging
 │   ├── CLAUDE.md           # MCP tool documentation (served as resource)
-│   └── tools/              # File format handlers
+│   └── tools/              # File format handlers (SQL, HTML, epJSON)
 ├── tests/                  # Pytest test suite
 ├── example-files/          # Sample EnergyPlus outputs
 ├── docs/                   # Evaluation reports and specs
@@ -208,7 +187,7 @@ Each simulation produces output files grouped by filename stem:
 | Extension | Contents | Access method |
 |---|---|---|
 | `.epJSON` | Input model definition (geometry, HVAC, schedules) | Read directly (JSON) |
-| `.sql` | SQLite results database (hourly timeseries, tabular data) | `execute_pandas` or `sqlite3` |
+| `.sql` | SQLite results database (hourly timeseries, tabular data) | `get_timeseries_report_by_rddid_list` or `sqlite3` |
 | `.table.htm` | HTML summary reports (end uses, sizing, unmet hours) | `search_html_tables_by_keyword` or parse with Python |
 | `.err` | Error/warning log | Read directly |
 | `.rdd` | Report Data Dictionary (lists available output variables) | Read directly |
@@ -246,7 +225,7 @@ Despite the prompt approach's strong showing on local file analysis, the MCP ser
 | Advantage | Why it matters |
 |---|---|
 | **Remote data access** | When simulation files live on a server, cloud storage, or shared drive that the agent can't reach via Bash. MCP is the only path to the data. |
-| **Server-side computation** | The `execute_pandas` sandbox runs pandas code without transferring 8760-hour datasets to the conversation. Essential for large models or slow connections. |
+| **Server-side computation** | An MCP server can run aggregations and filters server-side rather than transferring full 8760-hour datasets to the conversation — essential for large models or slow connections. The experimental [`execute_pandas`](../../tree/exp/pandas-exec-v1) sandbox demonstrates this; the `main` server currently returns full timeseries unprocessed. |
 | **Controlled execution environment** | Organizations can deploy the MCP server with specific data access policies, audit logging, and sandboxing — rather than giving the agent direct filesystem access. |
 | **Multi-user / hosted workflows** | A single MCP server can serve multiple users analyzing the same simulation library, without each user needing local copies. |
 | **Consistent tool interface** | MCP tools provide a stable API regardless of how files are organized on disk. File naming conventions, directory structures, and OS differences are handled by the server. |
@@ -254,7 +233,7 @@ Despite the prompt approach's strong showing on local file analysis, the MCP ser
 ### Recommendation
 
 - **Local analysis?** Start with `claude-tools/` (prompt approach). It's simpler, fully transparent, and produces the most accurate results.
-- **Building a service or working with remote data?** Use the MCP server with `execute_pandas`. Merge the domain guide content into `src/CLAUDE.md` for best results.
+- **Building a service or working with remote data?** Use the MCP server on `main`, and consider folding the domain guide content into `src/CLAUDE.md` for accuracy gains. If you need server-side computation over large timeseries, the [`exp/pandas-exec-v1`](../../tree/exp/pandas-exec-v1) tag has a working `execute_pandas` sandbox to start from.
 
 Full methodology, per-prompt breakdowns, and raw scores: [docs/eval-results-2026-03-22.md](docs/eval-results-2026-03-22.md)
 
