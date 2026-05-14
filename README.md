@@ -258,6 +258,19 @@ Despite the prompt approach's strong showing on local file analysis, the MCP ser
 
 Full methodology, per-prompt breakdowns, and raw scores: [docs/eval-results-2026-03-22.md](docs/eval-results-2026-03-22.md)
 
+### Exploration branches
+
+The four eval conditions were built on separate branches and are archived as tags so the code behind each result remains inspectable:
+
+| Approach | Tag | What it adds on top of `main` |
+|---|---|---|
+| Prompt-only | [`exp/prompt-only-v1`](../../tree/exp/prompt-only-v1) | EnergyPlus domain guide + vetted parsing snippets (no extra MCP code) |
+| Pandas-exec | [`exp/pandas-exec-v1`](../../tree/exp/pandas-exec-v1) | `execute_pandas` sandbox + LRU data loader |
+| Hybrid | [`exp/hybrid-v1`](../../tree/exp/hybrid-v1) | Pandas-exec plus pre-built helpers (`get_end_uses`, `get_timeseries_stats`) |
+| Vanilla | `main` (this branch) | Baseline MCP server with no eval-specific additions |
+
+These branches are exploratory and not maintained — they exist as a record of what was tested.
+
 ## License
 
 MIT
